@@ -4,15 +4,14 @@ import { z } from 'zod';
 import { CondicionPago, Moneda, EstadoCotizacion } from '@/types/cotizacion.types';
 
 export const cotizacionDetalleSchema = z.object({
-  idProducto: z.number({ message: 'Selecciona un producto' }).min(1, 'Selecciona un producto'),
-  idUnidadMedida: z.number().min(1),
-  codigoProducto: z.string().optional(),
+  id: z.number().optional(),
   producto: z.string().optional(),
-  unidadMedida: z.string().optional(),
-  stock: z.number().optional(),
+  servicio: z.string().optional(),
   cantidad: z.number().min(1, 'La cantidad debe ser mayor a 0'),
   precioUnitario: z.number().min(0, 'El precio unitario no puede ser negativo'),
+  margenPorcentaje: z.number().min(0).max(100, 'El margen debe estar entre 0 y 100%'),
   subtotal: z.number().min(0),
+  descripcion: z.string().optional(),
 });
 
 export type CotizacionDetalleFormData = z.infer<typeof cotizacionDetalleSchema>;

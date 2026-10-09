@@ -7,6 +7,6 @@ export interface SectorEconomico {
 }
 
 export async function listarSectoresEconomicos(): Promise<SectorEconomico[]> {
-  const { data } = await axiosClient.get<SectorEconomico[]>("/catalogos/sectores-economicos")
+  const { data } = await axiosClient.get<SectorEconomico[]>("/sectores-economicos")
   return data
 }

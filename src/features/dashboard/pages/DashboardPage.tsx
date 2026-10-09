@@ -9,7 +9,6 @@ import { formatCurrency, formatPercentage } from "@/lib/formatters/currency"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils/utils"
 import { useAuthStore } from "@/features/auth/store/authStore"
-import { puedeAccederA } from "@/router/roleAccess"
 
 function IndicadorSkeleton() {
   return (
@@ -63,8 +62,6 @@ const quickActions = [
 
 export function DashboardPage() {
   const nombreUsuario = useAuthStore((s) => s.nombreUsuario)
-  const nombreRol = useAuthStore((s) => s.nombreRol)
-  const accionesVisibles = quickActions.filter((accion) => puedeAccederA(nombreRol, accion.href))
   const {
     indicadores,
     facturacionHistorico,
@@ -203,25 +200,25 @@ export function DashboardPage() {
       </div>
 
       {/* Accesos rápidos */}
-      {accionesVisibles.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {accionesVisibles.map((action) => (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {quickActions.map((action) => (
           <Link
             key={action.href}
             to={action.href}
-            className="group relative overflow-hidden flex items-center gap-3 rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl p-4 shadow-sm transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group relative overflow-hidden flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div
               className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-accent/25 blur-2xl opacity-0 transition-opacity group-hover:opacity-100"
               aria-hidden="true"
             />
             <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm ring-1 ring-white/40">
-              <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-xl bg-linear-to-b from-white/40 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-xl bg-gradient-to-b from-white/40 to-transparent" />
               <action.icon className="relative h-4.5 w-4.5" />
             </div>
             <span className="relative text-sm font-medium text-foreground leading-tight">{action.label}</span>
           </Link>
         ))}
-      </div>}
+      </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
@@ -232,33 +229,35 @@ export function DashboardPage() {
 
       {/* Gráficos */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl shadow-sm">
-          <CotizacionesPorEstadoChart data={cotizacionesPorEstado ?? []} className="p-5 h-72" />
-          {!hasCotizaciones && (
+        <div className="flex flex-col justify-center rounded-2xl border border-border bg-card shadow-sm min-h-72 overflow-hidden">
+          {hasCotizaciones ? (
+            <CotizacionesPorEstadoChart data={cotizacionesPorEstado ?? []} className="p-5 h-72 border-0" />
+          ) : (
             <EmptyStateCard
               icon={<FileText className="h-7 w-7" strokeWidth={1.5} />}
               title="No hay cotizaciones aún"
               description="Comienza creando tu primera cotización para ver el desglose por estado en este gráfico."
-              action={puedeAccederA(nombreRol, '/cotizaciones/nueva') ? {
+              action={{
                 label: "Crear cotización",
                 href: "/cotizaciones/nueva",
-              } : undefined}
+              }}
             />
           )}
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl shadow-sm">
-          <FacturacionChart data={facturacionHistorico ?? []} className="p-5 h-72" />
-          {!hasFacturacion && (
+        <div className="flex flex-col justify-center rounded-2xl border border-border bg-card shadow-sm min-h-72 overflow-hidden">
+          {hasFacturacion ? (
+            <FacturacionChart data={facturacionHistorico ?? []} className="p-5 h-72 border-0" />
+          ) : (
             <EmptyStateCard
               icon={<BarChart3 className="h-7 w-7" strokeWidth={1.5} />}
               title="Sin datos de facturación"
               description="No hay facturación registrada para el periodo seleccionado. Los datos aparecerán aquí una vez que factures."
-              action={puedeAccederA(nombreRol, '/facturacion') ? {
+              action={{
                 label: "Ver facturación",
                 href: "/facturacion",
                 variant: "outline",
-              } : undefined}
+              }}
             />
           )}
         </div>

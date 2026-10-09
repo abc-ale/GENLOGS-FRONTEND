@@ -1,5 +1,4 @@
 import { axiosClient } from "@/api/axiosClient"
-import type { CrearCotizacionFormData } from "@/lib/validators/cotizacion.schema"
 import type {
   Cotizacion,
   CreateCotizacionRequest,
@@ -43,41 +42,6 @@ export const cotizacionesApi = {
   async crearCotizacion(data: CreateCotizacionRequest): Promise<Cotizacion> {
     const response = await axiosClient.post<Cotizacion>("/cotizaciones", data)
     return response.data
-  },
-
-  /** Arma el cuerpo que realmente espera el backend (ids de catálogo + lineas)
-   *  a partir de los datos del formulario y normaliza la respuesta. */
-  async crearDesdeFormulario(form: CrearCotizacionFormData): Promise<Cotizacion> {
-    const [monedas, condiciones] = await Promise.all([
-      axiosClient.get<Array<{ idMoneda: number; codigoMoneda: string }>>("/catalogos/monedas").then((r) => r.data),
-      axiosClient.get<Array<{ idCondicionPago: number; diasCredito: number }>>("/catalogos/condiciones-pago").then((r) => r.data),
-    ])
-    const moneda = monedas.find((m) => m.codigoMoneda === form.moneda)
-    const dias = form.condicionPago === "CONTADO" ? 0 : Number(String(form.condicionPago).replace(/\D/g, ""))
-    const condicion = condiciones.find((c) => Number(c.diasCredito) === dias)
-    if (!moneda) throw new Error(`La moneda ${form.moneda} no existe en el catálogo`)
-    if (!condicion) throw new Error("La condición de pago elegida no existe en el catálogo")
-
-    const body = {
-      idCliente: form.clienteId,
-      idMoneda: moneda.idMoneda,
-      idCondicionPago: condicion.idCondicionPago,
-      observaciones: form.observaciones || undefined,
-      lineas: form.detalles.map((d) => ({
-        idProducto: d.idProducto,
-        idUnidadMedida: d.idUnidadMedida,
-        cantidad: d.cantidad,
-        precioUnitario: d.precioUnitario,
-        descuentoUnitario: 0,
-      })),
-    }
-    const { data } = await axiosClient.post<Record<string, unknown>>("/cotizaciones", body)
-    return {
-      ...data,
-      id: data.idCotizacion,
-      codigo: data.codigoCotizacion,
-      total: Number(data.total ?? 0),
-    } as unknown as Cotizacion
   },
 
   async cambiarEstadoCotizacion(

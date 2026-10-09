@@ -25,7 +25,7 @@ export function EmptyStateCard({
       <div className="relative mx-auto mb-5 flex h-16 w-16 items-center justify-center">
         {/* Halo degradado detrás del ícono — da un aire "ilustrado"
             en vez de un círculo plano de un solo color. */}
-        <div className="absolute inset-0 rounded-full bg-linear-to-br from-accent/15 via-accent/5 to-transparent" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent/15 via-accent/5 to-transparent" />
         <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-card text-accent shadow-sm ring-1 ring-border/60">
           {icon}
         </div>

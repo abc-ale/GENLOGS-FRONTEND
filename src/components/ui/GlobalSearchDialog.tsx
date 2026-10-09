@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom"
 import { useDebounce } from "use-debounce"
 import { Search, FileText, Users, Package, CornerDownLeft, X } from "lucide-react"
 import { useGlobalSearch } from "@/hooks/useGlobalSearch"
-import { useAuthStore } from "@/features/auth/store/authStore"
-import { puedeAccederA } from "@/router/roleAccess"
 
 interface GlobalSearchDialogProps {
   open: boolean
@@ -39,7 +37,6 @@ const etiquetaPorTipo: Record<TipoResultado, string> = {
  *  operativas — este es un elemento de shell, no una tabla. */
 export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
   const navigate = useNavigate()
-  const nombreRol = useAuthStore((state) => state.nombreRol)
   const [query, setQuery] = useState("")
   const [terminoDebounced] = useDebounce(query, 250)
   const [indiceActivo, setIndiceActivo] = useState(0)
@@ -71,33 +68,38 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
         subtitulo: p.subtitulo,
         ruta: `/catalogo-repuestos/${p.id}`,
       })),
-    ].filter((resultado) => puedeAccederA(nombreRol, resultado.ruta))
-  }, [data, nombreRol])
+    ]
+  }, [data])
 
   useEffect(() => {
-    if (!open) return
-    document.body.style.overflow = "hidden"
-    const id = requestAnimationFrame(() => inputRef.current?.focus())
-    return () => {
-      cancelAnimationFrame(id)
-      document.body.style.overflow = ""
+    if (open) {
+      setQuery("")
+      setIndiceActivo(0)
+      document.body.style.overflow = "hidden"
+      const id = requestAnimationFrame(() => inputRef.current?.focus())
+      return () => cancelAnimationFrame(id)
     }
+    document.body.style.overflow = ""
   }, [open])
 
-  function cerrar() {
-    setQuery("")
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [])
+
+  useEffect(() => {
     setIndiceActivo(0)
-    onClose()
-  }
+  }, [terminoDebounced])
 
   function irA(resultado: ResultadoPlano) {
     navigate(resultado.ruta)
-    cerrar()
+    onClose()
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key === "Escape") {
-      cerrar()
+      onClose()
       return
     }
     if (e.key === "ArrowDown") {
@@ -123,8 +125,8 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-start justify-center bg-black/40 backdrop-blur-sm px-4 pt-[12vh]"
-      onClick={cerrar}
+      className="fixed inset-0 z-[100] flex items-start justify-center bg-black/40 backdrop-blur-sm px-4 pt-[12vh]"
+      onClick={onClose}
     >
       <div
         role="dialog"
@@ -139,16 +141,13 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
-              setIndiceActivo(0)
-            }}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar cotizaciones, clientes o productos…"
             className="h-14 w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
           <button
             type="button"
-            onClick={cerrar}
+            onClick={onClose}
             aria-label="Cerrar búsqueda"
             className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
