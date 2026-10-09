@@ -1,13 +1,13 @@
 ﻿@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/plus-jakarta-sans";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Plus Jakarta Sans Variable', sans-serif;
     --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     --color-success: var(--success);
     --color-success-foreground: var(--success-foreground);
@@ -56,86 +56,87 @@
 }
 
 :root {
-    /* GENLOGS — paleta celeste / azul */
-    --background: #F0F7FF;
-    --foreground: #0F2A43;
+    /* GENLOGS — paleta corporativa (ver claude/logica-ux-modulos-genlogs.md) */
+    --background: #F3F6F5;
+    --foreground: #0F2A2E;
     --card: #FFFFFF;
-    --card-foreground: #0F2A43;
+    --card-foreground: #0F2A2E;
     --popover: #FFFFFF;
-    --popover-foreground: #0F2A43;
-    --primary: #0B5FA5;
-    --primary-foreground: #FFFFFF;
-    --secondary: #DBEAFE;
-    --secondary-foreground: #0F2A43;
-    --muted: #E6F1FB;
-    --muted-foreground: #5B7690;
-    --accent: #0284C7;
+    --popover-foreground: #0F2A2E;
+    --primary: #0F5C63;
+    --primary-foreground: #F3F6F5;
+    --secondary: #E3ECEA;
+    --secondary-foreground: #0F2A2E;
+    --muted: #EAF0EE;
+    --muted-foreground: #5B706F;
+    --accent: #0E8F9B;
     --accent-foreground: #FFFFFF;
     --destructive: #DC2626;
-    --border: #CFE3F5;
-    --input: #CFE3F5;
-    --ring: #0EA5E9;
+    --border: #DCE6E3;
+    --input: #DCE6E3;
+    --ring: #0E8F9B;
     /* Estados de negocio (cotización/orden/factura) */
     --success: #16A34A;
     --success-foreground: #FFFFFF;
     --warning: #EAB308;
-    --warning-foreground: #0F2A43;
-    --info: #0284C7;
+    --warning-foreground: #1F2937;
+    --info: #2563EB;
     --info-foreground: #FFFFFF;
-    --chart-1: #0284C7;
-    --chart-2: #38BDF8;
-    --chart-3: #1D4ED8;
-    --chart-4: #0891B2;
-    --chart-5: #7DD3FC;
-    --radius: 0.625rem;
-    --sidebar: #0C2D4A;
-    --sidebar-foreground: #F0F7FF;
-    --sidebar-primary: #0EA5E9;
+    --chart-1: #0E8F9B;
+    --chart-2: #16A34A;
+    --chart-3: #EAB308;
+    --chart-4: #DC2626;
+    --chart-5: #D97706;
+    --radius: 0.875rem;
+    /* Sidebar: siempre oscuro, independiente del tema claro/oscuro del contenido */
+    --sidebar: #0F172A;
+    --sidebar-foreground: #F9FAFB;
+    --sidebar-primary: #2E6BA8;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: rgba(14, 165, 233, 0.18);
-    --sidebar-accent-foreground: #F0F7FF;
-    --sidebar-border: #164B75;
-    --sidebar-ring: #0EA5E9;
+    --sidebar-accent: rgba(46, 107, 168, 0.18);
+    --sidebar-accent-foreground: #F9FAFB;
+    --sidebar-border: #1F2937;
+    --sidebar-ring: #2E6BA8;
 }
 
 .dark {
-    --background: #0A1B2E;
-    --foreground: #EAF4FF;
-    --card: #0F2740;
-    --card-foreground: #EAF4FF;
-    --popover: #0F2740;
-    --popover-foreground: #EAF4FF;
-    --primary: #38BDF8;
-    --primary-foreground: #062338;
-    --secondary: #16385A;
-    --secondary-foreground: #EAF4FF;
-    --muted: #14324F;
-    --muted-foreground: #8FB0CC;
-    --accent: #38BDF8;
-    --accent-foreground: #062338;
-    --destructive: #EF4444;
-    --border: rgba(125, 190, 240, 0.16);
-    --input: rgba(125, 190, 240, 0.22);
-    --ring: #38BDF8;
-    --success: #22C55E;
+    --background: #0A1A1D;
+    --foreground: #F9FAFB;
+    --card: #10262A;
+    --card-foreground: #F3F6F5;
+    --popover: #10262A;
+    --popover-foreground: #F9FAFB;
+    --primary: #14A3B0;
+    --primary-foreground: #F9FAFB;
+    --secondary: #173338;
+    --secondary-foreground: #F9FAFB;
+    --muted: #173338;
+    --muted-foreground: #9CA3AF;
+    --accent: #14A3B0;
+    --accent-foreground: #FFFFFF;
+    --destructive: #DC2626;
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.12);
+    --ring: #14A3B0;
+    --success: #16A34A;
     --success-foreground: #FFFFFF;
     --warning: #EAB308;
-    --warning-foreground: #0F2A43;
-    --info: #38BDF8;
-    --info-foreground: #062338;
-    --chart-1: #38BDF8;
-    --chart-2: #7DD3FC;
-    --chart-3: #3B82F6;
-    --chart-4: #22D3EE;
-    --chart-5: #BAE6FD;
-    --sidebar: #071626;
-    --sidebar-foreground: #EAF4FF;
-    --sidebar-primary: #38BDF8;
-    --sidebar-primary-foreground: #062338;
-    --sidebar-accent: rgba(56, 189, 248, 0.20);
-    --sidebar-accent-foreground: #EAF4FF;
-    --sidebar-border: rgba(125, 190, 240, 0.16);
-    --sidebar-ring: #38BDF8;
+    --warning-foreground: #1F2937;
+    --info: #2563EB;
+    --info-foreground: #FFFFFF;
+    --chart-1: #14A3B0;
+    --chart-2: #16A34A;
+    --chart-3: #EAB308;
+    --chart-4: #DC2626;
+    --chart-5: #D97706;
+    --sidebar: #081417;
+    --sidebar-foreground: #F9FAFB;
+    --sidebar-primary: #2E6BA8;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: rgba(46, 107, 168, 0.22);
+    --sidebar-accent-foreground: #F9FAFB;
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+    --sidebar-ring: #2E6BA8;
 }
 
 @layer base {

@@ -205,7 +205,7 @@ export function DashboardPage() {
           <Link
             key={action.href}
             to={action.href}
-            className="group relative overflow-hidden flex items-center gap-3 rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl p-4 shadow-sm transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group relative overflow-hidden flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div
               className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-accent/25 blur-2xl opacity-0 transition-opacity group-hover:opacity-100"
@@ -229,9 +229,10 @@ export function DashboardPage() {
 
       {/* Gráficos */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl shadow-sm">
-          <CotizacionesPorEstadoChart data={cotizacionesPorEstado ?? []} className="p-5 h-72" />
-          {!hasCotizaciones && (
+        <div className="flex flex-col justify-center rounded-2xl border border-border bg-card shadow-sm min-h-72 overflow-hidden">
+          {hasCotizaciones ? (
+            <CotizacionesPorEstadoChart data={cotizacionesPorEstado ?? []} className="p-5 h-72 border-0" />
+          ) : (
             <EmptyStateCard
               icon={<FileText className="h-7 w-7" strokeWidth={1.5} />}
               title="No hay cotizaciones aún"
@@ -244,9 +245,10 @@ export function DashboardPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl shadow-sm">
-          <FacturacionChart data={facturacionHistorico ?? []} className="p-5 h-72" />
-          {!hasFacturacion && (
+        <div className="flex flex-col justify-center rounded-2xl border border-border bg-card shadow-sm min-h-72 overflow-hidden">
+          {hasFacturacion ? (
+            <FacturacionChart data={facturacionHistorico ?? []} className="p-5 h-72 border-0" />
+          ) : (
             <EmptyStateCard
               icon={<BarChart3 className="h-7 w-7" strokeWidth={1.5} />}
               title="Sin datos de facturación"

@@ -21,7 +21,7 @@ export function EmptyStateCard({
   className,
 }: EmptyStateCardProps) {
   return (
-    <div className={cn("rounded-xl border border-border/70 bg-card/80 backdrop-blur-sm p-10 text-center shadow-sm transition-shadow hover:shadow-md", className)}>
+    <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
       <div className="relative mx-auto mb-5 flex h-16 w-16 items-center justify-center">
         {/* Halo degradado detrás del ícono — da un aire "ilustrado"
             en vez de un círculo plano de un solo color. */}

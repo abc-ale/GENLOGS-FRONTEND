@@ -50,7 +50,7 @@ export function IndicadorCard({
   iconColor = "text-primary",
 }: IndicadorCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl p-5 shadow-sm transition-shadow hover:shadow-lg">
+    <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-shadow hover:shadow-lg">
       {/* Mancha de color desenfocada propia de cada tarjeta — asoma por una
           esquina como en un widget "liquid glass", tiñendo el vidrio con
           el color semántico del indicador (éxito, alerta, acento…). */}
