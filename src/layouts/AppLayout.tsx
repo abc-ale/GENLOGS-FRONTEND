@@ -148,7 +148,7 @@ export function AppLayout() {
             onClick={closeMenu}
             className={() => linkClass(location.pathname.startsWith(item.path))}
           >
-            <item.icon className="h-[18px] w-[18px] shrink-0" />
+            <item.icon className="h-4.5 w-4.5 shrink-0" />
             {item.label}
           </NavLink>
         ))}
@@ -160,7 +160,7 @@ export function AppLayout() {
             aria-expanded={isCatalogoOpen || isCatalogoActive}
             className={`w-full ${linkClass(isCatalogoActive && !isCatalogoOpen)}`}
           >
-            <Package className="h-[18px] w-[18px] shrink-0" />
+            <Package className="h-4.5 w-4.5 shrink-0" />
             <span className="flex-1 text-left">Catálogo</span>
             <ChevronDown
               className={`h-4 w-4 transition-transform ${isCatalogoOpen || isCatalogoActive ? 'rotate-180' : ''}`}
@@ -189,7 +189,7 @@ export function AppLayout() {
             onClick={closeMenu}
             className={() => linkClass(location.pathname.startsWith(item.path))}
           >
-            <item.icon className="h-[18px] w-[18px] shrink-0" />
+            <item.icon className="h-4.5 w-4.5 shrink-0" />
             {item.label}
           </NavLink>
         ))}
@@ -254,7 +254,7 @@ export function AppLayout() {
               aria-label="Buscar"
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted sm:hidden"
             >
-              <Search className="h-[18px] w-[18px]" />
+              <Search className="h-4.5 w-4.5" />
             </button>
             <button
               type="button"
@@ -262,7 +262,7 @@ export function AppLayout() {
               aria-label={tema === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              {tema === 'dark' ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+              {tema === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
 
             <div className="relative" ref={userMenuRef}>
@@ -306,7 +306,7 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-7xl min-w-0 p-4 sm:p-6 lg:p-8">
+       <main className="mx-auto w-full max-w-7xl min-w-0 p-4 sm:p-6 lg:p-8 dark:[&_h1]:text-sky-200">
           <Outlet />
         </main>
       </div>
