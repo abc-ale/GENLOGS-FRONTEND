@@ -3,6 +3,7 @@ import { Receipt } from 'lucide-react'
 import { useFacturas } from '../hooks/useFacturacion'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
+import { DescargarPdfButton } from '@/components/ui/DescargarPdfButton'
 
 export function FacturacionPage() {
   const { data, isLoading, isError, refetch } = useFacturas()
@@ -29,13 +30,14 @@ export function FacturacionPage() {
               <th className="p-3 font-medium text-muted-foreground">Origen</th>
               <th className="p-3 font-medium text-muted-foreground">Emisión</th>
               <th className="p-3 font-medium text-muted-foreground">Estado</th>
+              <th className="p-3 text-right font-medium text-muted-foreground">PDF</th>
             </tr>
           </thead>
           <tbody>
-            {isLoading && <TableSkeletonRows columns={5} />}
+            {isLoading && <TableSkeletonRows columns={6} />}
             {!isLoading && !isError && facturas.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-10 text-center text-muted-foreground">
+                <td colSpan={6} className="p-10 text-center text-muted-foreground">
                   <Receipt className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
                   No hay comprobantes registrados.
                 </td>
@@ -58,6 +60,9 @@ export function FacturacionPage() {
                 </td>
                 <td className="p-3">{factura.fechaEmision}</td>
                 <td className="p-3">{factura.estadoCodigo ?? factura.idEstadoFacturacion}</td>
+                <td className="p-3 text-right">
+                  <DescargarPdfButton tipo="factura" id={factura.idFacturacion} label="Descargar factura" variant="compact" />
+                </td>
               </tr>
             ))}
           </tbody>

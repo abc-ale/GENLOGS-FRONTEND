@@ -19,5 +19,5 @@ export interface UsuarioRequest {
   nombres: string
   correo: string
   password: string
-  iniciales: string
+  iniciales?: string
 }

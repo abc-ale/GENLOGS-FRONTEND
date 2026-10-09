@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCotizacion } from '../hooks/useCotizaciones';
 import { useCambiarEstado } from '../hooks/useCambiarEstado';
-import { useDescargarPDF } from '../hooks/useCotizacionesMutations';
+import { DescargarPdfButton } from '@/components/ui/DescargarPdfButton';
 import { useOrdenesCompra } from '@/features/ordenes-compra/hooks/useOrdenesCompra';
 import { useFacturas } from '@/features/facturacion/hooks/useFacturacion';
 import { SeguimientoTimeline } from '../components/SeguimientoTimeline';
@@ -24,7 +24,6 @@ import {
   Loader2,
   AlertCircle,
   Send,
-  Download,
   Edit,
 } from 'lucide-react';
 
@@ -36,8 +35,6 @@ export const CotizacionDetallePage: React.FC = () => {
   const { data: cotizacion, isLoading, error } = useCotizacion(cotizacionId);
   const { mutate: cambiarEstado, isPending: isChangingState } =
     useCambiarEstado(cotizacionId || 0);
-  const { mutate: descargarPDF, isPending: isDownloadingPDF } =
-    useDescargarPDF(cotizacionId || 0);
 
   // Para el breadcrumb "Cotización → Orden de Compra → Factura": se busca si
   // ya existe una orden generada a partir de esta cotización, y si esa orden
@@ -218,18 +215,13 @@ export const CotizacionDetallePage: React.FC = () => {
                 <Send className="w-4 h-4 mr-2" />
                 Enviar
               </button>
-              <button
-                onClick={() => descargarPDF()}
-                disabled={isDownloadingPDF}
-                className="inline-flex items-center px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 disabled:opacity-50 transition font-medium text-sm"
-              >
-                {isDownloadingPDF ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4 mr-2" />
-                )}
-                PDF
-              </button>
+              <DescargarPdfButton tipo="cotizacion" id={cotizacionId} label="Cotización PDF" variant="solid" />
+              {ordenGenerada && (
+                <DescargarPdfButton tipo="orden" id={ordenGenerada.idOrdenCompra} label="Orden de compra PDF" />
+              )}
+              {facturaGenerada && (
+                <DescargarPdfButton tipo="factura" id={facturaGenerada.idFacturacion} label="Factura PDF" />
+              )}
             </div>
           </div>
         </div>

@@ -2,7 +2,8 @@
 
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { cotizacionesApi } from '@/api/cotizacionesApi';
-import type { Cotizacion, CreateCotizacionRequest } from '@/types/cotizacion.types';
+import type { Cotizacion } from '@/types/cotizacion.types';
+import type { CrearCotizacionFormData } from '@/lib/validators/cotizacion.schema';
 import type { AxiosError } from 'axios';
 
 interface ErrorResponse {
@@ -16,13 +17,13 @@ interface ErrorResponse {
 export function useCrearCotizacion(): UseMutationResult<
   Cotizacion,
   AxiosError<ErrorResponse>,
-  CreateCotizacionRequest
+  CrearCotizacionFormData
 > {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateCotizacionRequest) =>
-      cotizacionesApi.crearCotizacion(data),
+    mutationFn: (data: CrearCotizacionFormData) =>
+      cotizacionesApi.crearDesdeFormulario(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cotizaciones'] });
       queryClient.invalidateQueries({ queryKey: ['cotizaciones-estadisticas'] });

@@ -1,330 +1,180 @@
-// src/features/cotizaciones/components/CotizacionDetalleForm.tsx
-// ✅ VERSION SIN ANY - Compatible con ESLint strict
+import React from 'react'
+import { useFormContext, useFieldArray, Controller } from 'react-hook-form'
+import { Plus, Trash2, PackageSearch } from 'lucide-react'
+import type { CrearCotizacionFormData } from '@/lib/validators/cotizacion.schema'
+import { formatearMoneda } from '@/lib/formatters/codigoCotizacion'
+import { ProductoBuscador } from './ProductoBuscador'
 
-import React, { useCallback } from 'react';
-import { useFormContext, useFieldArray, Controller } from 'react-hook-form';
-import type { CrearCotizacionFormData } from '@/lib/validators/cotizacion.schema';
-import { formatearMoneda, calcularSubtotal, calcularTotalConMargen } from '@/lib/formatters/codigoCotizacion';
-import { Trash2, Plus } from 'lucide-react';
-
-interface CotizacionDetalleFormProps {
-  moneda: string;
+interface Props {
+  moneda: string
 }
 
-export const CotizacionDetalleForm: React.FC<CotizacionDetalleFormProps> = ({
-  moneda,
-}) => {
-  const { control, watch, formState: { errors } } = useFormContext<CrearCotizacionFormData>();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'detalles',
-  });
+const inputCls =
+  'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
-  const detalles = watch('detalles');
+export const CotizacionDetalleForm: React.FC<Props> = ({ moneda }) => {
+  const { control, watch, setValue, formState: { errors } } = useFormContext<CrearCotizacionFormData>()
+  const { fields, append, remove } = useFieldArray({ control, name: 'detalles' })
+  const detalles = watch('detalles') ?? []
 
-  const agregarDetalle = useCallback(() => {
+  const subtotal = detalles.reduce((acc, d) => acc + (d?.cantidad || 0) * (d?.precioUnitario || 0), 0)
+  const igv = subtotal * 0.18
+
+  const agregar = () =>
     append({
+      idProducto: undefined as unknown as number,
+      idUnidadMedida: undefined as unknown as number,
       cantidad: 1,
       precioUnitario: 0,
-      margenPorcentaje: 0,
       subtotal: 0,
-    });
-  }, [append]);
-
-  const calcularTotales = useCallback(() => {
-    let subtotalGeneral = 0;
-    let totalConMargen = 0;
-
-    detalles?.forEach((detalle) => {
-      if (detalle) {
-        const sub = calcularSubtotal(detalle.cantidad, detalle.precioUnitario);
-        const total = calcularTotalConMargen(sub, detalle.margenPorcentaje);
-        subtotalGeneral += sub;
-        totalConMargen += total;
-      }
-    });
-
-    return { subtotalGeneral, totalConMargen, igv: subtotalGeneral * 0.18 };
-  }, [detalles]);
-
-  const totales = calcularTotales();
+    })
 
   return (
-    <div className="space-y-6 bg-card p-6 rounded-lg shadow-sm border border-border">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-5 rounded-lg border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">
-            Detalles de Cotización
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Agrega productos o servicios a la cotización
+          <h2 className="text-xl font-semibold text-foreground">Productos de la cotización</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Busca cada producto por su código o nombre, indica la cantidad y el precio.
           </p>
         </div>
         <button
           type="button"
-          onClick={agregarDetalle}
-          className="inline-flex items-center px-4 py-2 bg-success text-white rounded-lg hover:bg-success/90 transition font-medium"
+          onClick={agregar}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Agregar Línea
+          <Plus className="h-4 w-4" />
+          Agregar producto
         </button>
       </div>
 
-      {errors.detalles && (
-        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-          <p className="text-sm text-destructive">
-            {typeof errors.detalles.message === 'string'
-              ? errors.detalles.message
-              : 'Error en los detalles de cotización'}
-          </p>
-        </div>
+      {typeof errors.detalles?.message === 'string' && (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          {errors.detalles.message}
+        </p>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b-2 border-border bg-muted">
-              <th className="px-4 py-3 text-left font-semibold text-foreground">
-                Producto/Servicio
-              </th>
-              <th className="px-4 py-3 text-center font-semibold text-foreground">
-                Cantidad
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-foreground">
-                Precio Unit.
-              </th>
-              <th className="px-4 py-3 text-center font-semibold text-foreground">
-                Margen %
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-foreground">
-                Subtotal
-              </th>
-              <th className="px-4 py-3 text-center font-semibold text-foreground"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {fields.map((field, index) => (
-              <DetalleRow
-                key={field.id}
-                index={index}
-                moneda={moneda}
-                onRemove={() => remove(index)}
-                control={control}
-                errors={errors}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-
       {fields.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground mb-4">
-            No hay detalles. Haz clic en "Agregar Línea" para comenzar.
-          </p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-10 text-center">
+          <PackageSearch className="h-9 w-9 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground">Aún no agregaste productos.</p>
           <button
             type="button"
-            onClick={agregarDetalle}
-            className="inline-flex items-center px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition"
+            onClick={agregar}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Agregar Primera Línea
+            <Plus className="h-4 w-4" />
+            Agregar el primer producto
           </button>
         </div>
       )}
 
-      {/* Resumen de totales */}
+      <div className="space-y-3">
+        {fields.map((field, index) => {
+          const d = detalles[index]
+          const importe = (d?.cantidad || 0) * (d?.precioUnitario || 0)
+          const errLinea = errors.detalles?.[index]
+          return (
+            <div key={field.id} className="rounded-xl border border-border bg-background/50 p-3 sm:p-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+                <div className="md:col-span-5">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Producto</label>
+                  <ProductoBuscador
+                    hasError={!!errLinea?.idProducto}
+                    seleccionado={d?.producto ? `${d.codigoProducto ?? ''} · ${d.producto}` : undefined}
+                    onSeleccionar={(p) => {
+                      setValue(`detalles.${index}.idProducto`, p.idProducto, { shouldValidate: true })
+                      setValue(`detalles.${index}.idUnidadMedida`, p.idUnidadMedida, { shouldValidate: true })
+                      setValue(`detalles.${index}.codigoProducto`, p.codigoProducto)
+                      setValue(`detalles.${index}.producto`, p.nombreProducto)
+                      setValue(`detalles.${index}.stock`, p.stock)
+                    }}
+                  />
+                  {d?.producto ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {d.codigoProducto} · {d.producto}
+                      {typeof d.stock === 'number' ? ` · Stock: ${d.stock}` : ''}
+                    </p>
+                  ) : errLinea?.idProducto ? (
+                    <p className="mt-1 text-xs text-destructive">Selecciona un producto de la lista.</p>
+                  ) : null}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Cantidad</label>
+                  <Controller
+                    name={`detalles.${index}.cantidad`}
+                    control={control}
+                    render={({ field: f }) => (
+                      <input
+                        type="number"
+                        min={1}
+                        step={1}
+                        value={f.value || ''}
+                        onChange={(e) => f.onChange(Number(e.target.value))}
+                        className={`${inputCls} text-center`}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Precio unit.</label>
+                  <Controller
+                    name={`detalles.${index}.precioUnitario`}
+                    control={control}
+                    render={({ field: f }) => (
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="0.00"
+                        value={f.value || ''}
+                        onChange={(e) => f.onChange(Number(e.target.value))}
+                        className={`${inputCls} text-right`}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="flex items-end justify-between gap-2 md:col-span-3">
+                  <div className="text-right md:flex-1">
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">Importe</p>
+                    <p className="py-2 text-sm font-semibold text-foreground">{formatearMoneda(importe, moneda)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    title="Quitar producto"
+                    className="mb-0.5 rounded-lg p-2 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
       {fields.length > 0 && (
-        <div className="mt-8 pt-6 border-t-2 border-border space-y-3">
-          <div className="flex justify-end">
-            <div className="w-full sm:w-80 space-y-3">
-              <div className="flex justify-between text-foreground">
-                <span className="font-medium">Subtotal:</span>
-                <span className="font-semibold">
-                  {formatearMoneda(totales.subtotalGeneral, moneda)}
-                </span>
-              </div>
-              <div className="flex justify-between text-foreground">
-                <span className="font-medium">IGV (18%):</span>
-                <span className="font-semibold">
-                  {formatearMoneda(totales.igv, moneda)}
-                </span>
-              </div>
-              <div className="flex justify-between text-lg text-foreground bg-muted p-3 rounded-lg">
-                <span className="font-bold">Total:</span>
-                <span className="font-bold">
-                  {formatearMoneda(totales.subtotalGeneral + totales.igv, moneda)}
-                </span>
-              </div>
+        <div className="flex justify-end border-t border-border pt-4">
+          <div className="w-full space-y-2 sm:w-80">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="font-medium">{formatearMoneda(subtotal, moneda)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">IGV (18%)</span>
+              <span className="font-medium">{formatearMoneda(igv, moneda)}</span>
+            </div>
+            <div className="flex justify-between rounded-lg bg-muted p-3 text-base font-bold">
+              <span>Total</span>
+              <span>{formatearMoneda(subtotal + igv, moneda)}</span>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-};
-
-interface DetalleRowProps {
-  index: number;
-  moneda: string;
-  onRemove: () => void;
-  control: ReturnType<typeof useFormContext<CrearCotizacionFormData>>['control'];
-  errors: ReturnType<typeof useFormContext<CrearCotizacionFormData>>['formState']['errors'];
+  )
 }
-
-const DetalleRow: React.FC<DetalleRowProps> = ({
-  index,
-  moneda,
-  onRemove,
-  control,
-  errors,
-}) => {
-  const { watch: fieldWatch } = useFormContext<CrearCotizacionFormData>();
-  const detalles = fieldWatch('detalles');
-  const detalle = detalles?.[index];
-
-  const subtotal = detalle
-    ? calcularSubtotal(detalle.cantidad, detalle.precioUnitario)
-    : 0;
-  const totalConMargen = detalle
-    ? calcularTotalConMargen(subtotal, detalle.margenPorcentaje)
-    : 0;
-
-  return (
-    <tr className="border-b border-border hover:bg-muted transition">
-      {/* Producto/Servicio */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.producto`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <input
-                {...field}
-                value={field.value || ''}
-                type="text"
-                placeholder="Nombre del producto o servicio"
-                className={`w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-accent ${
-                  errors?.detalles?.[index]?.producto
-                    ? 'border-destructive'
-                    : 'border-border'
-                }`}
-              />
-              {errors?.detalles?.[index]?.producto && (
-                <p className="text-xs text-destructive mt-1">
-                  {errors.detalles[index]?.producto?.message}
-                </p>
-              )}
-            </div>
-          )}
-        />
-      </td>
-
-      {/* Cantidad */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.cantidad`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <input
-                {...field}
-                type="number"
-                value={field.value || ''}
-                onChange={(e) => field.onChange(Number(e.target.value))}
-                min="1"
-                step="1"
-                className={`w-full px-2 py-1 border rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-accent ${
-                  errors?.detalles?.[index]?.cantidad
-                    ? 'border-destructive'
-                    : 'border-border'
-                }`}
-              />
-            </div>
-          )}
-        />
-      </td>
-
-      {/* Precio Unitario */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.precioUnitario`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <input
-                {...field}
-                type="number"
-                value={field.value || ''}
-                onChange={(e) => field.onChange(Number(e.target.value))}
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                className={`w-full px-2 py-1 border rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-accent ${
-                  errors?.detalles?.[index]?.precioUnitario
-                    ? 'border-destructive'
-                    : 'border-border'
-                }`}
-              />
-            </div>
-          )}
-        />
-      </td>
-
-      {/* Margen % */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.margenPorcentaje`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <div className="flex items-center">
-                <input
-                  {...field}
-                  type="number"
-                  value={field.value || ''}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  className={`w-full px-2 py-1 border rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-accent ${
-                    errors?.detalles?.[index]?.margenPorcentaje
-                      ? 'border-destructive'
-                      : 'border-border'
-                  }`}
-                />
-                <span className="ml-1 text-muted-foreground">%</span>
-              </div>
-            </div>
-          )}
-        />
-      </td>
-
-      {/* Subtotal */}
-      <td className="px-4 py-3 text-right font-semibold text-foreground">
-        <div className="space-y-1">
-          <div className="text-sm">
-            {formatearMoneda(subtotal, moneda)}
-          </div>
-          {detalle?.margenPorcentaje && detalle.margenPorcentaje > 0 && (
-            <div className="text-xs text-success font-medium">
-              +{formatearMoneda(totalConMargen - subtotal, moneda)} margen
-            </div>
-          )}
-        </div>
-      </td>
-
-      {/* Eliminar */}
-      <td className="px-4 py-3 text-center">
-        <button
-          type="button"
-          onClick={onRemove}
-          className="inline-flex p-2 text-destructive hover:bg-destructive/10 rounded-lg transition"
-          title="Eliminar esta línea"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </td>
-    </tr>
-  );
-};

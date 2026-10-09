@@ -3,6 +3,7 @@ import { ShoppingCart } from 'lucide-react'
 import { useOrdenesCompra } from '../hooks/useOrdenesCompra'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
+import { DescargarPdfButton } from '@/components/ui/DescargarPdfButton'
 
 export function OrdenesCompraPage() {
   const { data, isLoading, isError, refetch } = useOrdenesCompra()
@@ -31,13 +32,14 @@ export function OrdenesCompraPage() {
               <th className="p-3 font-medium text-muted-foreground">Origen</th>
               <th className="p-3 font-medium text-muted-foreground">Emisión</th>
               <th className="p-3 font-medium text-muted-foreground">Estado</th>
+              <th className="p-3 text-right font-medium text-muted-foreground">PDF</th>
             </tr>
           </thead>
           <tbody>
-            {isLoading && <TableSkeletonRows columns={5} />}
+            {isLoading && <TableSkeletonRows columns={6} />}
             {!isLoading && !isError && ordenes.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-10 text-center text-muted-foreground">
+                <td colSpan={6} className="p-10 text-center text-muted-foreground">
                   <ShoppingCart className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
                   No hay órdenes registradas.
                 </td>
@@ -60,6 +62,9 @@ export function OrdenesCompraPage() {
                 </td>
                 <td className="p-3">{orden.fechaRecepcion}</td>
                 <td className="p-3">{orden.estadoCodigo ?? orden.idEstadoOrdenCompra}</td>
+                <td className="p-3 text-right">
+                  <DescargarPdfButton tipo="orden" id={orden.idOrdenCompra} label="Descargar orden de compra" variant="compact" />
+                </td>
               </tr>
             ))}
           </tbody>

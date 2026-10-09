@@ -9,6 +9,7 @@ import { useCrearCotizacion } from '../hooks/useCrearCotizacion';
 import { CotizacionForm } from '../components/CotizacionForm';
 import { CotizacionDetalleForm } from '../components/CotizacionDetalleForm';
 import { ArrowLeft, Save, Loader2, CheckCircle } from 'lucide-react';
+import { DescargarPdfButton } from '@/components/ui/DescargarPdfButton';
 import { useClientes } from '@/features/clientes-proveedores/hooks/useClientes';
 
 
@@ -32,7 +33,7 @@ export const NuevaCotizacionPage: React.FC = () => {
     },
   });
 
-  const { mutate: crearCotizacion, isPending, isSuccess, data: cotizacionCreada } =
+  const { mutate: crearCotizacion, isPending, isSuccess, data: cotizacionCreada, error: errorCrear } =
     useCrearCotizacion();
 
 const moneda = useWatch({ control: methods.control, name: 'moneda' });
@@ -45,7 +46,7 @@ const moneda = useWatch({ control: methods.control, name: 'moneda' });
   };
 
   const onSubmit = (data: CrearCotizacionFormData) => {
-    crearCotizacion(data);
+    crearCotizacion(data, { onSuccess: () => setStep('success') });
   };
 
   if (step === 'success' && isSuccess && cotizacionCreada) {
@@ -66,6 +67,18 @@ const moneda = useWatch({ control: methods.control, name: 'moneda' });
           </p>
           <p className="text-sm text-muted-foreground mb-6">
             Total: {cotizacionCreada.moneda} {cotizacionCreada.total.toFixed(2)}
+          </p>
+
+          <div className="mb-4 flex justify-center">
+            <DescargarPdfButton
+              tipo="cotizacion"
+              id={Number(cotizacionCreada.id)}
+              label="Descargar cotización (PDF)"
+              variant="solid"
+            />
+          </div>
+          <p className="mb-5 text-xs text-muted-foreground">
+            La orden de compra y la factura se descargan desde sus módulos cuando se generen.
           </p>
 
           <div className="flex gap-3">
@@ -139,6 +152,14 @@ const moneda = useWatch({ control: methods.control, name: 'moneda' });
 
             {step === 'detalles' && (
               <CotizacionDetalleForm moneda={moneda || 'PEN'} />
+            )}
+
+            {errorCrear && (
+              <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                {(errorCrear as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message
+                  ?? errorCrear.message
+                  ?? 'No se pudo crear la cotización.'}
+              </p>
             )}
 
             {/* Navigation Buttons */}
