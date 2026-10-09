@@ -15,28 +15,24 @@ import { ProductoCard, ProductoCardSkeleton } from "../components/ProductoCard"
 
 const TAMANIO_PAGINA = 12
 
-type CampoBusqueda = "nombre" | "codigo"
-
 const selectClass =
   "h-10 rounded-lg border border-border bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 
 export function CatalogoProductosPage() {
   const [texto, setTexto] = useState("")
-  const [campo, setCampo] = useState<CampoBusqueda>("nombre")
   const [idCategoria, setIdCategoria] = useState<number | undefined>(undefined)
   const [idMarca, setIdMarca] = useState<number | undefined>(undefined)
   const [textoDebounced] = useDebounce(texto.trim(), 400)
 
   // La página se resetea sola cuando cambia cualquier filtro, sin efectos.
-  const claveFiltros = JSON.stringify([textoDebounced, campo, idCategoria, idMarca])
+  const claveFiltros = JSON.stringify([textoDebounced, idCategoria, idMarca])
   const [paginaActual, setPaginaActual] = useState({ clave: claveFiltros, pagina: 0 })
   const pagina = paginaActual.clave === claveFiltros ? paginaActual.pagina : 0
 
   const { data: marcas } = useQuery({ queryKey: ["marcas"], queryFn: listarMarcas, staleTime: 5 * 60_000 })
 
   const filtros: ProductoFiltros = {
-    nombre: campo === "nombre" ? textoDebounced || undefined : undefined,
-    codigo: campo === "codigo" ? textoDebounced || undefined : undefined,
+    codigo: textoDebounced || undefined,
     idCategoriaProducto: idCategoria,
     idMarca,
     page: pagina,
@@ -86,15 +82,6 @@ export function CatalogoProductosPage() {
         role="search"
       >
         <div className="flex min-w-72 flex-1 items-center gap-2 sm:max-w-xl">
-          <select
-            aria-label="Buscar por"
-            value={campo}
-            onChange={(e) => setCampo(e.target.value as CampoBusqueda)}
-            className={selectClass}
-          >
-            <option value="nombre">Nombre</option>
-            <option value="codigo">Código</option>
-          </select>
           <div className="relative flex-1">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -104,8 +91,8 @@ export function CatalogoProductosPage() {
               type="search"
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
-              placeholder={campo === "nombre" ? "Buscar por nombre del repuesto" : "Buscar por código"}
-              aria-label="Texto a buscar"
+              placeholder="Buscar por código del producto"
+              aria-label="Código del producto"
               className="pl-9"
             />
           </div>
@@ -144,7 +131,7 @@ export function CatalogoProductosPage() {
       {sinResultados && (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-10 text-center shadow-sm">
           <div className="relative flex h-16 w-16 items-center justify-center">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent/15 via-accent/5 to-transparent" />
+            <div className="absolute inset-0 rounded-full bg-linear-to-br from-accent/15 via-accent/5 to-transparent" />
             <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-card text-accent shadow-sm ring-1 ring-border/60">
               <Package className="h-5 w-5" />
             </div>

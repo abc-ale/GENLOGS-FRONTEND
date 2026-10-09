@@ -85,9 +85,8 @@ export function EditarProductoPage() {
 
       {producto && (
         <ProductoForm
-          key={`${producto.idProducto}-${producto.imagenes.length}-${producto.documentos.length}`}
+          key={`${producto.idProducto}-${producto.documentos.length}`}
           defaultValues={productoToFormValues(producto)}
-          imagenesExistentes={producto.imagenes}
           documentosExistentes={producto.documentos}
           onSubmit={handleSubmit}
           onCancel={() => navigate(`/catalogo-repuestos/${idProducto}`)}

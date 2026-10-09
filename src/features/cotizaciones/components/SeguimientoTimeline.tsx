@@ -22,7 +22,7 @@ export const SeguimientoTimeline: React.FC<SeguimientoTimelineProps> = ({
       case EstadoCotizacion.RECHAZADA:
         return <AlertCircle className="w-6 h-6 text-destructive" />;
       case EstadoCotizacion.CADUCADA:
-        return <AlertCircle className="w-6 h-6 text-yellow-600" />;
+        return <AlertCircle className="w-6 h-6 text-warning" />;
       default:
         return <Clock className="w-6 h-6 text-accent" />;
     }

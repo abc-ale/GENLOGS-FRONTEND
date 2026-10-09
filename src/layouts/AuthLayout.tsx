@@ -7,12 +7,12 @@ export function AuthLayout() {
   const { tema, alternarTema } = useTheme()
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-[#0F172A] via-[#1E3A5F] to-[#2E6BA8] p-4 sm:p-6">
+    <div className="relative flex min-h-screen items-center justify-center bg-linear-to-br from-[#E0F2FE] via-[#BAE6FD] to-[#38BDF8] dark:from-[#06182B] dark:via-[#0B3A66] dark:to-[#0369A1] p-4 sm:p-6">
       <button
         type="button"
         onClick={alternarTema}
         aria-label={tema === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 transition-colors sm:right-6 sm:top-6"
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors sm:right-6 sm:top-6"
       >
         {tema === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
       </button>

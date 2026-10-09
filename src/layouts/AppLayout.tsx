@@ -162,8 +162,8 @@ export function AppLayout() {
           opacidad muy baja, no interactúan con el mouse. */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-32 -right-24 h-96 w-96 rounded-full bg-accent/15 blur-3xl" />
-        <div className="absolute top-1/3 -left-32 h-80 w-80 rounded-full bg-success/15 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-warning/15 blur-3xl" />
+        <div className="absolute top-1/3 -left-32 h-80 w-80 rounded-full bg-sky-300/25 blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-blue-300/20 blur-3xl" />
         <div className="absolute bottom-1/4 -right-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
       </div>
 

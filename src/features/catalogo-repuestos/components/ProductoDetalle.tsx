@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import type { ReactNode } from "react"
-import { FileText, ImageOff } from "lucide-react"
-import { cn } from "@/lib/utils/utils"
+import { FileText } from "lucide-react"
 import { ETIQUETA_TIPO_DOCUMENTO } from "@/types/producto.types"
 import type { CaracteristicaProducto, Producto } from "@/types/producto.types"
 
@@ -32,16 +31,6 @@ function formatearValor(c: CaracteristicaProducto): string {
 }
 
 export function ProductoDetalle({ producto, acciones }: ProductoDetalleProps) {
-  const [seleccion, setSeleccion] = useState(0)
-
-  // La imagen principal va primero en la galería.
-  const imagenes = useMemo(
-    () =>
-      [...(producto.imagenes ?? [])].sort((a, b) => Number(b.esPrincipal) - Number(a.esPrincipal)),
-    [producto.imagenes]
-  )
-  const imagenActual = imagenes[Math.min(seleccion, Math.max(imagenes.length - 1, 0))]
-
   const { destacadas, otras } = useMemo(() => {
     const claves = new Set(DESTACADAS.map((d) => d.clave))
     const todas = producto.caracteristicas ?? []
@@ -58,48 +47,7 @@ export function ProductoDetalle({ producto, acciones }: ProductoDetalleProps) {
   const hayFilasTabla = otras.length > 0 || !!producto.procedencia
 
   return (
-    <article className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-      {/* Galería */}
-      <div className="flex flex-col gap-3">
-        <div className="aspect-square overflow-hidden rounded-lg border border-border bg-muted">
-          {imagenActual ? (
-            <img
-              src={imagenActual.urlImagen}
-              alt={producto.nombreProducto}
-              className="h-full w-full object-contain"
-            />
-          ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
-              <ImageOff className="h-8 w-8" aria-hidden="true" />
-              <span className="text-sm">Este producto aún no tiene imágenes</span>
-            </div>
-          )}
-        </div>
-
-        {imagenes.length > 1 && (
-          <ul className="flex flex-wrap gap-2" aria-label="Galería de imágenes">
-            {imagenes.map((img, index) => (
-              <li key={img.idProductoImagen}>
-                <button
-                  type="button"
-                  onClick={() => setSeleccion(index)}
-                  aria-label={`Ver imagen ${index + 1} de ${imagenes.length}`}
-                  aria-current={imagenActual?.idProductoImagen === img.idProductoImagen}
-                  className={cn(
-                    "h-16 w-16 overflow-hidden rounded-md border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    imagenActual?.idProductoImagen === img.idProductoImagen
-                      ? "border-primary"
-                      : "border-transparent opacity-70 hover:opacity-100"
-                  )}
-                >
-                  <img src={img.urlImagen} alt="" className="h-full w-full object-cover" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
+    <article className="grid gap-8">
       {/* Información */}
       <div className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">

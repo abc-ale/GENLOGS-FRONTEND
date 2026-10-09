@@ -16,13 +16,13 @@ interface CotizacionesPorEstadoChartProps {
 }
 
 const ESTADO_COLORES: Record<string, string> = {
-  APROBADA: "var(--chart-2)",
-  PENDIENTE: "var(--chart-3)",
-  RECHAZADA: "var(--chart-4)",
+  APROBADA: "var(--success)",
+  PENDIENTE: "var(--chart-5)",
+  RECHAZADA: "var(--destructive)",
   BORRADOR: "var(--muted-foreground)",
   ENVIADA: "var(--chart-1)",
-  EN_NEGOCIACION: "var(--chart-5)",
-  ACEPTADA: "var(--chart-2)",
+  EN_NEGOCIACION: "var(--chart-3)",
+  ACEPTADA: "var(--success)",
   CONVERTIDA_OC: "var(--primary)",
   VENCIDA: "var(--warning)",
 }

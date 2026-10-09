@@ -17,8 +17,6 @@ import { ETIQUETA_TIPO_DOCUMENTO, TIPOS_DOCUMENTO } from "@/types/producto.types
 import type {
   DocumentoNuevo,
   DocumentoProducto,
-  ImagenNueva,
-  ImagenProducto,
   MediosNuevosProducto,
   TipoDocumento,
 } from "@/types/producto.types"
@@ -26,8 +24,7 @@ import { CategoriaSelector } from "./CategoriaSelector"
 
 interface ProductoFormProps {
   defaultValues?: Partial<ProductoFormValues>
-  /** En edición: medios ya asociados al producto (solo lectura). */
-  imagenesExistentes?: ImagenProducto[]
+  /** En edición: documentos ya asociados al producto (solo lectura). */
   documentosExistentes?: DocumentoProducto[]
   onSubmit: (values: ProductoFormValues, medios: MediosNuevosProducto) => void
   onCancel?: () => void
@@ -78,7 +75,6 @@ function Campo({
 
 export function ProductoForm({
   defaultValues,
-  imagenesExistentes = [],
   documentosExistentes = [],
   onSubmit,
   onCancel,
@@ -122,37 +118,12 @@ export function ProductoForm({
   const { fields, append, remove } = useFieldArray({ control, name: "caracteristicas" })
   const caracteristicas = useWatch({ control, name: "caracteristicas" })
 
-  // Medios nuevos: ya están en Cloudinary y se asocian al producto al guardar.
-  const [imagenes, setImagenes] = useState<ImagenNueva[]>([])
+  // Medios nuevos: ya están subidos y se asocian al producto al guardar.
   const [documentos, setDocumentos] = useState<DocumentoNuevo[]>([])
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>("FICHA_TECNICA")
-  const [subiendoImagenes, setSubiendoImagenes] = useState(false)
   const [subiendoDocumentos, setSubiendoDocumentos] = useState(false)
 
-  const tienePrincipalExistente = imagenesExistentes.some((i) => i.esPrincipal)
-  const subiendo = subiendoImagenes || subiendoDocumentos
-
-  function handleImagenSubida(url: string) {
-    setImagenes((prev) => [
-      ...prev,
-      { url, esPrincipal: prev.length === 0 && !tienePrincipalExistente },
-    ])
-  }
-
-  function handleImagenQuitada(url: string) {
-    setImagenes((prev) => {
-      const restantes = prev.filter((i) => i.url !== url)
-      const necesitaPrincipal =
-        !tienePrincipalExistente && restantes.length > 0 && !restantes.some((i) => i.esPrincipal)
-      return necesitaPrincipal
-        ? restantes.map((imagen, index) => (index === 0 ? { ...imagen, esPrincipal: true } : imagen))
-        : restantes
-    })
-  }
-
-  function marcarPrincipal(url: string) {
-    setImagenes((prev) => prev.map((i) => ({ ...i, esPrincipal: i.url === url })))
-  }
+  const subiendo = subiendoDocumentos
 
   function agregarSugerida(nombre: string) {
     append({ nombreCaracteristica: nombre, valorCaracteristica: "", unidadCaracteristica: "" })
@@ -164,7 +135,7 @@ export function ProductoForm({
 
   return (
     <form
-      onSubmit={handleSubmit((values) => onSubmit(values, { imagenes, documentos }))}
+      onSubmit={handleSubmit((values) => onSubmit(values, { imagenes: [], documentos }))}
       noValidate
       className="flex flex-col gap-8"
     >
@@ -418,65 +389,6 @@ export function ProductoForm({
           <p role="alert" className="text-sm text-destructive">
             {errors.caracteristicas?.message ?? errors.caracteristicas?.root?.message}
           </p>
-        )}
-      </section>
-
-      {/* Imágenes */}
-      <section aria-labelledby={idDe("imagenes")} className="flex flex-col gap-3">
-        <h2 id={idDe("imagenes")} className="text-base font-semibold">
-          Imágenes
-        </h2>
-
-        {imagenesExistentes.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-sm text-muted-foreground">Ya cargadas</p>
-            <ul className="flex flex-wrap gap-2">
-              {imagenesExistentes.map((img) => (
-                <li key={img.idProductoImagen} className="relative h-20 w-20 overflow-hidden rounded-md border border-border">
-                  <img src={img.urlImagen} alt="Imagen del producto" className="h-full w-full object-cover" />
-                  {img.esPrincipal && (
-                    <span className="absolute inset-x-0 bottom-0 bg-primary/80 px-1 py-0.5 text-center text-[10px] text-primary-foreground">
-                      Principal
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <FileUploader
-          tipo="imagen"
-          multiple
-          maxArchivos={8}
-          label={imagenesExistentes.length > 0 ? "Agregar más imágenes" : "Fotos del producto"}
-          onUploaded={(resultado) => handleImagenSubida(resultado.url)}
-          onRemoved={(resultado) => handleImagenQuitada(resultado.url)}
-          onUploadingChange={setSubiendoImagenes}
-          disabled={submitting}
-        />
-
-        {!tienePrincipalExistente && imagenes.length > 1 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium">Imagen principal</p>
-            <div role="group" aria-label="Elegir imagen principal" className="flex flex-wrap gap-2">
-              {imagenes.map((img, index) => (
-                <button
-                  key={img.url}
-                  type="button"
-                  onClick={() => marcarPrincipal(img.url)}
-                  aria-pressed={img.esPrincipal}
-                  aria-label={`Imagen ${index + 1}${img.esPrincipal ? " (principal)" : ""}`}
-                  className={cn(
-                    "h-16 w-16 overflow-hidden rounded-md border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    img.esPrincipal ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
-                  )}
-                >
-                  <img src={img.url} alt="" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
-          </div>
         )}
       </section>
 
