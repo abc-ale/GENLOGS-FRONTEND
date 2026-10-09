@@ -4,14 +4,16 @@ import { useFormContext, Controller } from 'react-hook-form'
 import type { CrearCotizacionFormData } from '@/lib/validators/cotizacion.schema'
 import { CondicionPago, Moneda } from '@/types/cotizacion.types'
 import { mapearCondicionPago } from '@/lib/formatters/codigoCotizacion'
+import { ClienteDocumentoBuscador } from './ClienteDocumentoBuscador'
 
 interface CotizacionFormProps {
   clientes: Cliente[]
   isLoadingClientes?: boolean
+  onClienteCreado?: () => void
 }
 
-export const CotizacionForm: React.FC<CotizacionFormProps> = ({ clientes, isLoadingClientes = false }) => {
-  const { control, formState: { errors } } = useFormContext<CrearCotizacionFormData>()
+export const CotizacionForm: React.FC<CotizacionFormProps> = ({ clientes, isLoadingClientes = false, onClienteCreado }) => {
+  const { control, setValue, formState: { errors } } = useFormContext<CrearCotizacionFormData>()
 
   return (
     <div className="space-y-6 bg-card p-4 sm:p-6 rounded-lg shadow-sm border border-border">
@@ -22,6 +24,14 @@ export const CotizacionForm: React.FC<CotizacionFormProps> = ({ clientes, isLoad
 
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">Cliente *</label>
+        <div className="mb-3">
+          <ClienteDocumentoBuscador
+            clientes={clientes}
+            onClienteCreado={onClienteCreado}
+            onSeleccionar={(id) => setValue('clienteId', id, { shouldValidate: true })}
+          />
+        </div>
+        <p className="mb-2 text-xs text-muted-foreground">o elige uno de la lista:</p>
         <Controller
           name="clienteId"
           control={control}

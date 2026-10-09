@@ -18,7 +18,7 @@ export const NuevaCotizacionPage: React.FC = () => {
   const [step, setStep] = useState<'info' | 'detalles' | 'success'>('info');
   
   // FIX: Usar hook real en lugar de mock
-  const { data: clientes = [], isLoading: cargandoClientes } = useClientes({});
+  const { data: clientes = [], isLoading: cargandoClientes, refetch: refetchClientes } = useClientes({});
 
   const methods = useForm<CrearCotizacionFormData>({
     resolver: zodResolver(crearCotizacionSchema),
@@ -134,7 +134,7 @@ const moneda = useWatch({ control: methods.control, name: 'moneda' });
         <FormProvider<CrearCotizacionFormData> {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
             {step === 'info' && (
-             <CotizacionForm clientes={clientes} isLoadingClientes={cargandoClientes} />
+             <CotizacionForm clientes={clientes} isLoadingClientes={cargandoClientes} onClienteCreado={() => void refetchClientes()} />
             )}
 
             {step === 'detalles' && (

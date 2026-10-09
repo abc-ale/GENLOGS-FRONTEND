@@ -133,7 +133,7 @@ export function AppLayout() {
           alt="GenLogs"
           width={192}
           height={80}
-          className="h-14 w-auto max-w-full object-contain"
+          className="h-14 w-auto max-w-full rounded-xl object-contain dark:bg-white dark:px-3 dark:py-1.5"
         />
       </Link>
 
