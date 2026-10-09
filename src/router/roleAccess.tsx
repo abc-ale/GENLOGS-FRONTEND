@@ -23,6 +23,11 @@ const rutasPorRol: Record<string, string[]> = {
     '/proveedores', '/empresas-mineras', '/catalogo-repuestos',
     '/catalogo-servicios', '/facturacion', '/reportes',
   ],
+  GERENTE_GENERAL: [
+    '/dashboard', '/cotizaciones', '/ordenes-compra', '/clientes',
+    '/proveedores', '/empresas-mineras', '/catalogo-repuestos',
+    '/catalogo-servicios', '/facturacion', '/reportes',
+  ],
 }
 
 function normalizarRol(rol: string | null | undefined): string {
