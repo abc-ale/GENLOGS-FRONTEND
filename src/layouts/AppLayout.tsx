@@ -311,7 +311,9 @@ export function AppLayout() {
         </main>
       </div>
 
-      <GlobalSearchDialog open={isBusquedaAbierta} onClose={() => setIsBusquedaAbierta(false)} />
+      {isBusquedaAbierta && (
+        <GlobalSearchDialog open onClose={() => setIsBusquedaAbierta(false)} />
+      )}
     </div>
   );
 }

@@ -8,6 +8,6 @@ export interface CategoriaServicio {
 }
 
 export async function listarCategoriasServicio(): Promise<CategoriaServicio[]> {
-  const { data } = await axiosClient.get<CategoriaServicio[]>("/categorias-servicio")
+  const { data } = await axiosClient.get<CategoriaServicio[]>("/catalogos/categorias-servicio")
   return data
 }

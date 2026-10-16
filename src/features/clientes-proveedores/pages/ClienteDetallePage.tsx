@@ -61,7 +61,7 @@ export default function ClienteDetallePage() {
 
       <div>
         <h2 className="mb-2 text-lg font-semibold text-foreground">Contactos</h2>
-        <ContactoClienteList clienteId={cliente.id} contactos={cliente.contactos ?? []} />
+        <ContactoClienteList clienteId={cliente.id} idTercero={cliente.idTercero} contactos={cliente.contactos ?? []} />
       </div>
     </main>
   )

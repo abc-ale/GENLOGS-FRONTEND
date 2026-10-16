@@ -71,10 +71,16 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
     ]
   }, [data])
 
+  // El índice activo se acota en render (sin setState dentro de effects): si
+  // la lista cambia —nuevo término debounced, menos resultados— la selección
+  // vuelve sola al último índice permitido en lugar de quedar fuera de rango.
+  const indiceSeguro = Math.min(indiceActivo, Math.max(resultados.length - 1, 0))
+
+  // El diálogo solo se monta mientras está abierto (AppLayout lo renderiza
+  // condicionalmente), así que query e índice se limpian solos al cerrar:
+  // no hace falta —ni se debe— resetearlos dentro de un effect.
   useEffect(() => {
     if (open) {
-      setQuery("")
-      setIndiceActivo(0)
       document.body.style.overflow = "hidden"
       const id = requestAnimationFrame(() => inputRef.current?.focus())
       return () => cancelAnimationFrame(id)
@@ -88,10 +94,6 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
     }
   }, [])
 
-  useEffect(() => {
-    setIndiceActivo(0)
-  }, [terminoDebounced])
-
   function irA(resultado: ResultadoPlano) {
     navigate(resultado.ruta)
     onClose()
@@ -104,17 +106,17 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
     }
     if (e.key === "ArrowDown") {
       e.preventDefault()
-      setIndiceActivo((i) => Math.min(i + 1, Math.max(resultados.length - 1, 0)))
+      setIndiceActivo(Math.min(indiceSeguro + 1, Math.max(resultados.length - 1, 0)))
       return
     }
     if (e.key === "ArrowUp") {
       e.preventDefault()
-      setIndiceActivo((i) => Math.max(i - 1, 0))
+      setIndiceActivo(Math.max(indiceSeguro - 1, 0))
       return
     }
     if (e.key === "Enter") {
       e.preventDefault()
-      const seleccionado = resultados[indiceActivo]
+      const seleccionado = resultados[indiceSeguro]
       if (seleccionado) irA(seleccionado)
     }
   }
@@ -141,7 +143,10 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setIndiceActivo(0)
+            }}
             placeholder="Buscar cotizaciones, clientes o productos…"
             className="h-14 w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
@@ -171,7 +176,7 @@ export function GlobalSearchDialog({ open, onClose }: GlobalSearchDialogProps) {
           )}
           {resultados.map((resultado, i) => {
             const Icono = iconoPorTipo[resultado.tipo]
-            const activo = i === indiceActivo
+            const activo = i === indiceSeguro
             return (
               <button
                 key={resultado.key}

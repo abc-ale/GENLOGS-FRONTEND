@@ -4,7 +4,10 @@ import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 
 export function EmpresasMinerasPage() {
-  const { data = [], isLoading, isError } = useEmpresasMineras()
+  const { data, isLoading, isError } = useEmpresasMineras()
+  // Defensa local: React Query puede entregar undefined mientras carga y el
+  // backend puede responder null; el render siempre debe recibir un array.
+  const empresas = data ?? []
 
   return (
     <section className="space-y-6">
@@ -28,7 +31,7 @@ export function EmpresasMinerasPage() {
           </thead>
           <tbody>
             {isLoading && <TableSkeletonRows columns={4} />}
-            {!isLoading && data.length === 0 && (
+            {!isLoading && empresas.length === 0 && (
               <tr>
                 <td colSpan={4} className="p-10 text-center text-muted-foreground">
                   <Building2 className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
@@ -36,7 +39,7 @@ export function EmpresasMinerasPage() {
                 </td>
               </tr>
             )}
-            {data.map((empresa) => (
+            {empresas.map((empresa) => (
               <tr key={empresa.idEmpresaMinera} className="border-t border-border hover:bg-muted/50">
                 <td className="p-3 font-medium text-foreground">{empresa.nombreUnidadMinera}</td>
                 <td className="p-3">{empresa.idCliente}</td>
@@ -45,7 +48,9 @@ export function EmpresasMinerasPage() {
                     ? `${empresa.latitud}, ${empresa.longitud}`
                     : 'Sin coordenadas'}
                 </td>
-                <td className="p-3">{empresa.minerales.map((m) => m.mineral?.nombreMineral).join(', ') || '—'}</td>
+                {/* minerales puede venir null/ausente en la respuesta cruda
+                    aunque el tipo lo declare requerido */}
+                <td className="p-3">{(empresa.minerales ?? []).map((m) => m.mineral?.nombreMineral).join(', ') || '—'}</td>
               </tr>
             ))}
           </tbody>

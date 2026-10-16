@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import * as productosApi from "@/api/productosApi"
-import type { ProductoFiltros } from "@/types/producto.types"
+import type { Producto, ProductoFiltros } from "@/types/producto.types"
 import type { PageResponse } from "@/types/common.types"
 
 export const productosKeys = {
@@ -9,7 +9,7 @@ export const productosKeys = {
   detalle: (id: number) => ["productos", "detalle", id] as const,
 }
 
-const emptyPageResponse: PageResponse<any> = {
+const emptyPageResponse: PageResponse<Producto> = {
   content: [],
   totalElements: 0,
   totalPages: 0,

@@ -17,10 +17,11 @@ export const useCrearProveedor = () => {
   });
 };
 
-export const useAgregarContacto = (clienteId: number) => {
+// Los contactos cuelgan del tercero (idTercero), no del cliente.
+export const useAgregarContacto = (clienteId: number, idTercero: number) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: ContactoClienteRequest) => contactosClienteApi.agregar(clienteId, data),
+    mutationFn: (data: ContactoClienteRequest) => contactosClienteApi.agregar(idTercero, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: clientesKeys.detalle(clienteId) }),
   });
 };
@@ -28,7 +29,7 @@ export const useAgregarContacto = (clienteId: number) => {
 export const useEliminarContacto = (clienteId: number) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (contactoId: number) => contactosClienteApi.eliminar(clienteId, contactoId),
+    mutationFn: (contactoId: number) => contactosClienteApi.eliminar(contactoId),
     onSuccess: () => qc.invalidateQueries({ queryKey: clientesKeys.detalle(clienteId) }),
   });
 };

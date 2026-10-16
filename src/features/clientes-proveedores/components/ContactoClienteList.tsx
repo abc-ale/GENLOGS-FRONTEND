@@ -8,8 +8,8 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const input = 'rounded border border-border p-2 text-sm';
 
-export function ContactoClienteList({ clienteId, contactos }: { clienteId: number; contactos: ContactoCliente[] }) {
-  const agregar = useAgregarContacto(clienteId);
+export function ContactoClienteList({ clienteId, idTercero, contactos }: { clienteId: number; idTercero: number; contactos: ContactoCliente[] }) {
+  const agregar = useAgregarContacto(clienteId, idTercero);
   const eliminar = useEliminarContacto(clienteId);
   const [contactoAEliminar, setContactoAEliminar] = useState<ContactoCliente | null>(null);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ContactoFormValues>({

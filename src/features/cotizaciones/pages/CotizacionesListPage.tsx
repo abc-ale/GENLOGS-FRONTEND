@@ -57,7 +57,10 @@ export const CotizacionesListPage: React.FC = () => {
   const handleDuplicar = (id: number) => {
     duplicarCotizacion(id, {
       onSuccess: (data) => {
-        navigate(`/cotizaciones/${data.id}/editar`);
+        // La pantalla de edición (/cotizaciones/:id/editar) no existe todavía;
+        // se abre el detalle de la cotización recién duplicada, donde sí se
+        // puede gestionar su estado y descargar el PDF.
+        navigate(`/cotizaciones/${data.id}`);
       },
     });
   };

@@ -65,7 +65,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 
 function CustomLegend({ payload = [] }: { payload?: Array<{ value: number; color: string; id: string }> }) {
   return (
-    <div className="flex flex-wrap gap-2 mt-2">
+    <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
       {payload.map((entry, index) => (
         <div key={index} className="flex items-center gap-1.5">
           <div
@@ -86,8 +86,38 @@ function CustomLegend({ payload = [] }: { payload?: Array<{ value: number; color
 
 export function CotizacionesPorEstadoChart({ data, className }: CotizacionesPorEstadoChartProps) {
   const safeData = Array.isArray(data) ? data : []
-  
-  if (safeData.length === 0) {
+
+  // 3) Datos inválidos (NaN): el backend puede mandar `cantidad`/`porcentaje`
+  // como null, undefined o string no numérico. Se descartan los valores no
+  // numéricos o <= 0 ANTES de pasárselos a la gráfica (evita "(NaN)" en la
+  // leyenda y sectores de tamaño 0) y se recalcula el porcentaje cuando el
+  // recibido no es válido.
+  const entradas = safeData.filter(
+    (item) => Number.isFinite(Number(item.cantidad)) && Number(item.cantidad) > 0
+  )
+  const totalCantidad = entradas.reduce((acc, item) => acc + Number(item.cantidad), 0)
+
+  const chartData = entradas.map((item) => {
+    const estado = String(item.estado ?? "").trim() || "DESCONOCIDO"
+    const cantidad = Number(item.cantidad)
+    const porcentajeBackend = Number(item.porcentaje)
+    const porcentaje =
+      Number.isFinite(porcentajeBackend) && porcentajeBackend > 0
+        ? porcentajeBackend
+        : totalCantidad > 0
+          ? (cantidad / totalCantidad) * 100
+          : 0
+    return {
+      ...item,
+      estado,
+      cantidad,
+      porcentaje,
+      label: ESTADO_ETIQUETAS[estado] ?? estado,
+      color: ESTADO_COLORES[estado] ?? "var(--chart-1)",
+    }
+  })
+
+  if (chartData.length === 0) {
     return (
       <div className={cn("rounded-lg border border-border p-8 text-center", className)}>
         <p className="text-sm text-muted-foreground">Sin cotizaciones registradas</p>
@@ -95,30 +125,36 @@ export function CotizacionesPorEstadoChart({ data, className }: CotizacionesPorE
     )
   }
 
-  const chartData = safeData.map((item) => ({
-    ...item,
-    label: ESTADO_ETIQUETAS[item.estado] ?? item.estado,
-    color: ESTADO_COLORES[item.estado] ?? "var(--chart-1)",
-  }))
-
   return (
-    <div className={cn("rounded-lg border border-border p-4", className)}>
-      <h2 className="text-sm font-semibold mb-4">Cotizaciones por estado</h2>
+    <div className={cn("flex flex-col rounded-lg border border-border p-4", className)}>
+      <h2 className="mb-3 shrink-0 text-sm font-semibold">Cotizaciones por estado</h2>
 
-      <div className="h-64 flex items-center justify-center">
+      {/* 1) Contenedor responsivo y centrado (ejes X/Y): el área tiene un alto
+          que cabe exactamente en la tarjeta del dashboard (h-72 con su padding
+          y título ≈ 216 px disponibles), así la dona ya no desborda ni se
+          recorta en el borde inferior del contenedor. */}
+      <div className="flex h-52 w-full min-w-0 flex-col items-center justify-center">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart margin={{ top: 8, right: 16, bottom: 8, left: 16 }}>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={100}
+              // 2) Radios proporcionales: en recharts 3 un porcentaje se aplica
+              // sobre maxRadius (calculado con width/height/cx/cy), así la dona
+              // se encoge sola con el contenedor y deja el anillo exterior
+              // libre para las etiquetas de porcentaje sin pisarse.
+              innerRadius="52%"
+              outerRadius="75%"
               fill="var(--chart-1)"
               paddingAngle={2}
               dataKey="cantidad"
               nameKey="estado"
-              label={({ payload, percent }) => `${payload.label} ${((percent ?? 0) * 100).toFixed(1)}%`}
+              label={({ payload, percent }) => {
+                const pct = Number(percent ?? 0)
+                if (!(pct > 0) || !payload) return ""
+                return `${payload.label} ${(pct * 100).toFixed(1)}%`
+              }}
               labelLine={false}
             >
               {chartData.map((entry, index) => (
@@ -126,16 +162,9 @@ export function CotizacionesPorEstadoChart({ data, className }: CotizacionesPorE
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              layout="vertical"
-              align="right"
-              verticalAlign="middle"
-              iconType="circle"
-              iconSize={8}
-              formatter={(value) => ESTADO_ETIQUETAS[value] ?? value}
-              wrapperStyle={{ paddingTop: "20px" }}
-              content={<CustomLegend />}
-            />
+            {/* 2) Leyenda en la parte inferior y centrada; recharts reserva su
+                alto propio y el área del gráfico no se monta encima. */}
+            <Legend layout="horizontal" align="center" verticalAlign="bottom" content={<CustomLegend />} />
           </PieChart>
         </ResponsiveContainer>
       </div>
