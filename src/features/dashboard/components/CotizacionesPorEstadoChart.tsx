@@ -15,17 +15,18 @@ interface CotizacionesPorEstadoChartProps {
   className?: string
 }
 
+// Colores con significado: verde = ganada, rojo = perdida, ámbar/naranja = en riesgo, azul = en curso.
 const ESTADO_COLORES: Record<string, string> = {
-  APROBADA: "#1D4ED8",
-  PENDIENTE: "#0F766E",
-  RECHAZADA: "#64748B",
-  BORRADOR: "#CBD5E1",
-  ENVIADA: "#60A5FA",
-  EN_NEGOCIACION: "#6366F1",
-  ACEPTADA: "#2563EB",
-  CONVERTIDA_OC: "#38BDF8",
-  VENCIDA: "#3B82F6",
-  ANULADA: "#94A3B8",
+  APROBADA: "#10B981",       // verde esmeralda
+  ACEPTADA: "#14B8A6",       // turquesa
+  CONVERTIDA_OC: "#8B5CF6",  // violeta
+  ENVIADA: "#3B82F6",        // azul
+  EN_NEGOCIACION: "#F59E0B", // ámbar
+  PENDIENTE: "#EAB308",      // amarillo
+  VENCIDA: "#F97316",        // naranja
+  RECHAZADA: "#EF4444",      // rojo
+  ANULADA: "#475569",        // gris oscuro
+  BORRADOR: "#CBD5E1",       // gris claro
 }
 
 const ESTADO_ETIQUETAS: Record<string, string> = {

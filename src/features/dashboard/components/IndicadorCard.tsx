@@ -49,6 +49,10 @@ export function IndicadorCard({
   iconBgColor = "bg-primary/10",
   iconColor = "text-primary",
 }: IndicadorCardProps) {
+  // "PEN 1,754,953.00" -> código de moneda pequeño + monto grande, para que el monto siempre quepa.
+  const partes = value.match(/^([A-Z]{3})[\s\u00a0]+(.+)$/)
+  const moneda = partes ? partes[1] : null
+  const numero = partes ? partes[2] : value
   return (
     <div className="group relative overflow-hidden min-w-0 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5 transition-shadow hover:shadow-lg">
       {/* Mancha de color desenfocada propia de cada tarjeta — asoma por una
@@ -79,7 +83,19 @@ export function IndicadorCard({
       </div>
       <div className="relative min-w-0 flex-1 mt-3">
         <p className="text-xs font-medium text-muted-foreground leading-tight line-clamp-2">{label}</p>
-        <p className={cn("mt-1.5 block min-w-0 whitespace-nowrap font-bold text-foreground tracking-tight tabular-nums leading-tight", value.length > 16 ? "text-sm sm:text-base" : value.length > 13 ? "text-base sm:text-lg" : value.length > 10 ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl")}>{value}</p>
+        <p className="mt-1.5 flex min-w-0 flex-wrap items-baseline gap-x-1.5 leading-tight">
+          {moneda && (
+            <span className="text-xs font-semibold tracking-wide text-muted-foreground sm:text-sm">{moneda}</span>
+          )}
+          <span
+            className={cn(
+              "min-w-0 break-all font-bold text-foreground tracking-tight tabular-nums",
+              numero.length > 12 ? "text-lg sm:text-xl" : numero.length > 9 ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl"
+            )}
+          >
+            {numero}
+          </span>
+        </p>
         {subtitle && <p className="mt-1 text-xs text-muted-foreground line-clamp-1">{subtitle}</p>}
       </div>
     </div>
