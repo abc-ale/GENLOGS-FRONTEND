@@ -7,7 +7,7 @@ import { clientesKeys } from './useClientes';
 export const proveedoresKeys = { all: ['proveedores'] as const };
 
 export const useProveedores = () =>
-  useQuery({ queryKey: proveedoresKeys.all, queryFn: proveedoresApi.listar, initialData: [] });
+  useQuery({ queryKey: proveedoresKeys.all, queryFn: proveedoresApi.listar, staleTime: 60_000, retry: 1 });
 
 export const useCrearProveedor = () => {
   const qc = useQueryClient();

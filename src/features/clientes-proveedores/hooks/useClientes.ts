@@ -13,7 +13,8 @@ export const useClientes = (filtros: FiltrosCliente) =>
     queryKey: clientesKeys.lista(filtros),
     queryFn: () => clientesApi.listar(filtros),
     placeholderData: keepPreviousData,
-    initialData: [],
+    staleTime: 60_000,
+    retry: 1,
   });
 
 export const useCliente = (id: number) =>

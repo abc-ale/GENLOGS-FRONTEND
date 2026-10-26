@@ -6,6 +6,7 @@ import { facturacionApi } from '@/api/facturacionApi'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
+import { normalizarCodigoMoneda } from '@/lib/formatters/currency'
 import { EstadoFacturacion } from '@/types/facturacion.types'
 import type { Factura, DetalleFacturacion } from '@/types/facturacion.types'
 import logoGenlogs from '@/assets/GENLOGS.png'
@@ -34,7 +35,7 @@ async function generarPdfFacturacion(factura: Factura, lineas: DetalleFacturacio
   doc.setDrawColor(218, 228, 241)
   doc.line(14, 46, 196, 46)
 
-  const moneda = factura.moneda || 'S/'
+  const moneda = normalizarCodigoMoneda(factura.moneda)
   const dinero = (valor: number | undefined) => `${moneda} ${Number(valor ?? 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   doc.setTextColor(45, 55, 72)
   doc.setFont('helvetica', 'normal')
