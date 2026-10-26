@@ -1,11 +1,18 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Receipt } from 'lucide-react'
+import { Filter, Receipt } from 'lucide-react'
 import { useFacturas } from '../hooks/useFacturacion'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
+import { PaginationBar } from '@/components/ui/PaginationBar'
+import { EstadoFacturacion } from '@/types/facturacion.types'
 
 export function FacturacionPage() {
-  const { data, isLoading, isError, refetch } = useFacturas()
+  const [pagina, setPagina] = useState(0)
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
+  const [estadoCodigo, setEstadoCodigo] = useState<EstadoFacturacion | ''>('')
+  const TAMANO_PAGINA = 10
+  const { data, isLoading, isError, refetch } = useFacturas({ estadoCodigo: estadoCodigo || undefined, page: pagina, size: TAMANO_PAGINA })
   const facturas = data?.content ?? []
 
   return (
@@ -15,6 +22,22 @@ export function FacturacionPage() {
         <p className="text-sm text-muted-foreground">Comprobantes, tipos y estados de emisión.</p>
       </header>
 
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+        <button type="button" onClick={() => setFiltrosAbiertos(abierto => !abierto)} aria-expanded={filtrosAbiertos} className="flex w-full items-center gap-2 text-left font-medium text-foreground">
+          <Filter className="h-4 w-4" aria-hidden="true" />Filtros {estadoCodigo && <span className="text-xs text-muted-foreground">(1)</span>}
+        </button>
+        {filtrosAbiertos && <div className="mt-4 max-w-sm border-t border-border pt-4">
+          <label htmlFor="filtro-estado-factura" className="mb-2 block text-sm font-medium text-foreground">Estado</label>
+          <select id="filtro-estado-factura" value={estadoCodigo} onChange={e => { setEstadoCodigo(e.target.value as EstadoFacturacion | ''); setPagina(0) }} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <option value="">Todos los estados</option>
+            <option value={EstadoFacturacion.EMITIDA}>Emitida</option>
+            <option value={EstadoFacturacion.PARCIAL}>Pago parcial</option>
+            <option value={EstadoFacturacion.PAGADA}>Pagada</option>
+            <option value={EstadoFacturacion.VENCIDA}>Vencida</option>
+            <option value={EstadoFacturacion.ANULADA}>Anulada</option>
+          </select>
+        </div>}
+      </div>
       {isError && (
         <ErrorBanner message="No se pudieron cargar los comprobantes." onRetry={() => refetch()} />
       )}
@@ -64,6 +87,7 @@ export function FacturacionPage() {
         </table>
         </div>
       </div>
+      <PaginationBar currentPage={pagina} totalPages={data?.totalPages ?? 0} totalItems={data?.totalElements ?? 0} pageSize={TAMANO_PAGINA} itemLabel="facturas" onPageChange={setPagina} />
     </section>
   )
 }

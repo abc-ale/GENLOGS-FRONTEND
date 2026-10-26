@@ -1,11 +1,18 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShoppingCart } from 'lucide-react'
+import { Filter, ShoppingCart } from 'lucide-react'
 import { useOrdenesCompra } from '../hooks/useOrdenesCompra'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
+import { PaginationBar } from '@/components/ui/PaginationBar'
+import { EstadoOrdenCompra } from '@/types/ordenCompra.types'
 
 export function OrdenesCompraPage() {
-  const { data, isLoading, isError, refetch } = useOrdenesCompra()
+  const [paginaActual, setPaginaActual] = useState(0)
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
+  const [estadoCodigo, setEstadoCodigo] = useState<EstadoOrdenCompra | ''>('')
+  const tamanioPagina = 10
+  const { data, isLoading, isError, refetch } = useOrdenesCompra({ estadoCodigo: estadoCodigo || undefined, page: paginaActual, size: tamanioPagina })
   const ordenes = data?.content ?? []
 
   return (
@@ -17,6 +24,21 @@ export function OrdenesCompraPage() {
         </p>
       </header>
 
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+        <button type="button" onClick={() => setFiltrosAbiertos(abierto => !abierto)} aria-expanded={filtrosAbiertos} className="flex w-full items-center gap-2 text-left font-medium text-foreground">
+          <Filter className="h-4 w-4" aria-hidden="true" />Filtros {estadoCodigo && <span className="text-xs text-muted-foreground">(1)</span>}
+        </button>
+        {filtrosAbiertos && <div className="mt-4 max-w-sm border-t border-border pt-4">
+          <label htmlFor="filtro-estado-orden" className="mb-2 block text-sm font-medium text-foreground">Estado</label>
+          <select id="filtro-estado-orden" value={estadoCodigo} onChange={e => { setEstadoCodigo(e.target.value as EstadoOrdenCompra | ''); setPaginaActual(0) }} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <option value="">Todos los estados</option>
+            <option value={EstadoOrdenCompra.RECIBIDA}>Recibida</option>
+            <option value={EstadoOrdenCompra.EN_ATENCION}>En atención</option>
+            <option value={EstadoOrdenCompra.ATENDIDA}>Atendida</option>
+            <option value={EstadoOrdenCompra.ANULADA}>Anulada</option>
+          </select>
+        </div>}
+      </div>
       {isError && (
         <ErrorBanner message="No se pudieron cargar las órdenes de compra." onRetry={() => refetch()} />
       )}
@@ -66,6 +88,7 @@ export function OrdenesCompraPage() {
         </table>
         </div>
       </div>
+      <PaginationBar currentPage={paginaActual} totalPages={data?.totalPages ?? 0} totalItems={data?.totalElements ?? 0} pageSize={tamanioPagina} itemLabel="órdenes de compra" onPageChange={setPaginaActual} busy={isLoading} />
     </section>
   )
 }

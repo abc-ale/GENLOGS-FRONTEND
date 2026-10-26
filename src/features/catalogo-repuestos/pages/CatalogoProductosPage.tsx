@@ -2,18 +2,19 @@ import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "use-debounce"
 import { Link } from "react-router-dom"
-import { ChevronLeft, ChevronRight, Package, Plus, Search } from "lucide-react"
+import { Package, Plus, Search } from "lucide-react"
 import { listarMarcas } from "@/api/marcasApi"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ErrorBanner } from "@/components/ui/ErrorBanner"
+import { PaginationBar } from "@/components/ui/PaginationBar"
 import { useProductos } from "@/hooks/useProductos"
 import { cn } from "@/lib/utils/utils"
 import type { ProductoFiltros } from "@/types/producto.types"
 import { CategoriaSelector } from "../components/CategoriaSelector"
 import { ProductoCard, ProductoCardSkeleton } from "../components/ProductoCard"
 
-const TAMANIO_PAGINA = 12
+const TAMANIO_PAGINA = 10
 
 const selectClass =
   "h-10 rounded-lg border border-border bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -165,34 +166,9 @@ export function CatalogoProductosPage() {
           <ProductoCard key={producto.idProducto} producto={producto} />
         ))}
       </div>
-
-      {totalPaginas > 1 && (
-        <nav aria-label="Paginación del catálogo" className="flex items-center justify-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => irAPagina(pagina - 1)}
-            disabled={pagina === 0 || isFetching}
-          >
-            <ChevronLeft className="mr-1 h-4 w-4" aria-hidden="true" />
-            Anterior
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Página {pagina + 1} de {totalPaginas}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => irAPagina(pagina + 1)}
-            disabled={pagina + 1 >= totalPaginas || isFetching}
-          >
-            Siguiente
-            <ChevronRight className="ml-1 h-4 w-4" aria-hidden="true" />
-          </Button>
-        </nav>
-      )}
+      <PaginationBar currentPage={pagina} totalPages={totalPaginas} totalItems={totalElementos} pageSize={TAMANIO_PAGINA} itemLabel="productos" onPageChange={irAPagina} busy={isFetching} />
     </div>
   )
 }
+
+

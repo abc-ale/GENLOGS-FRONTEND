@@ -9,6 +9,7 @@ import { CategoriaServicioSelector } from "../components/CategoriaServicioSelect
 import { ErrorBanner } from "@/components/ui/ErrorBanner"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import type { Servicio, ServicioFormValues } from "@/types/servicio.types"
+import { PaginationBar } from "@/components/ui/PaginationBar"
 
 export function CatalogoServiciosPage() {
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -17,6 +18,8 @@ export function CatalogoServiciosPage() {
   const [busqueda, setBusqueda] = useState("")
   const [idCategoria, setIdCategoria] = useState<number | undefined>(undefined)
   const [mostrarInactivos, setMostrarInactivos] = useState(false)
+  const [pagina, setPagina] = useState(0)
+  const TAMANO_PAGINA = 10
 
   const { data: categorias, isLoading: cargandoCategorias } = useQuery({
     queryKey: ["categorias-servicio"],
@@ -37,6 +40,8 @@ export function CatalogoServiciosPage() {
         s.codigoServicio.toLowerCase().includes(termino)
     )
   }, [servicios, busqueda])
+
+  const serviciosPagina = serviciosFiltrados.slice(pagina * TAMANO_PAGINA, (pagina + 1) * TAMANO_PAGINA)
 
   function handleNuevo() {
     setServicioEditando(null)
@@ -128,7 +133,7 @@ export function CatalogoServiciosPage() {
         <input
           type="search"
           value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          onChange={(e) => { setBusqueda(e.target.value); setPagina(0) }}
           placeholder="Buscar por nombre o código"
           className="min-w-64 rounded-lg border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
@@ -136,13 +141,13 @@ export function CatalogoServiciosPage() {
           categorias={categorias}
           isLoading={cargandoCategorias}
           value={idCategoria}
-          onChange={(id) => setIdCategoria(id || undefined)}
+          onChange={(id) => { setIdCategoria(id || undefined); setPagina(0) }}
         />
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={mostrarInactivos}
-            onChange={(e) => setMostrarInactivos(e.target.checked)}
+            onChange={(e) => { setMostrarInactivos(e.target.checked); setPagina(0) }}
           />
           Incluir inactivos
         </label>
@@ -179,7 +184,7 @@ export function CatalogoServiciosPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading && Array.from({ length: 6 }).map((_, i) => <ServicioCardSkeleton key={i} />)}
-        {serviciosFiltrados.map((servicio) => (
+        {serviciosPagina.map((servicio) => (
           <ServicioCard
             key={servicio.idServicio}
             servicio={servicio}
@@ -188,6 +193,8 @@ export function CatalogoServiciosPage() {
           />
         ))}
       </div>
+
+      <PaginationBar currentPage={pagina} totalPages={Math.ceil(serviciosFiltrados.length / TAMANO_PAGINA)} totalItems={serviciosFiltrados.length} pageSize={TAMANO_PAGINA} itemLabel="servicios" onPageChange={setPagina} />
 
       <ConfirmDialog
         open={servicioADesactivar !== null}
@@ -206,3 +213,5 @@ export function CatalogoServiciosPage() {
     </div>
   )
 }
+
+

@@ -4,12 +4,16 @@ import { UsuarioFormModal } from "./UsuarioFormModal"
 import { useUsuarios } from "../hooks/useUsuarios"
 import { ErrorBanner } from "@/components/ui/ErrorBanner"
 import { TableSkeletonRows } from "@/components/ui/TableSkeletonRows"
+import { PaginationBar } from "@/components/ui/PaginationBar"
 
 export function UsuariosPage() {
   const { usuarios, roles, loading, error, agregar, alternarBloqueo, recargar } = useUsuarios()
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [operandoId, setOperandoId] = useState<number | null>(null)
   const [accionError, setAccionError] = useState<string | null>(null)
+  const [pagina, setPagina] = useState(0)
+  const TAMANO_PAGINA = 10
+  const usuariosPagina = usuarios.slice(pagina * TAMANO_PAGINA, (pagina + 1) * TAMANO_PAGINA)
 
   async function cambiarBloqueo(idUsuario: number, bloqueado: boolean) {
     setOperandoId(idUsuario)
@@ -77,7 +81,7 @@ export function UsuariosPage() {
                 </td>
               </tr>
             )}
-            {!loading && usuarios.map((usuario) => (
+            {!loading && usuariosPagina.map((usuario) => (
               <tr key={usuario.idUsuario} className="border-t border-border hover:bg-muted/50">
                 <td className="p-3 font-medium text-foreground">{usuario.nombreUsuario}</td>
                 <td className="p-3">{usuario.nombres}</td>
@@ -105,6 +109,8 @@ export function UsuariosPage() {
         </div>
       </div>
 
+      <PaginationBar currentPage={pagina} totalPages={Math.ceil(usuarios.length / TAMANO_PAGINA)} totalItems={usuarios.length} pageSize={TAMANO_PAGINA} itemLabel="usuarios" onPageChange={setPagina} />
+
       {mostrarFormulario && (
         <UsuarioFormModal
           roles={roles}
@@ -118,3 +124,4 @@ export function UsuariosPage() {
     </section>
   )
 }
+

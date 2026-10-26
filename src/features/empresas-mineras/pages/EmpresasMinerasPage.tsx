@@ -7,6 +7,7 @@ import { CrearUnidadMineraDialog } from '../components/CrearUnidadMineraDialog'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { cn } from '@/lib/utils/utils'
 import type { EmpresaMinera } from '@/types/empresaMinera.types'
 
@@ -52,6 +53,8 @@ export function EmpresasMinerasPage() {
   const [seleccion, setSeleccion] = useState<number | null>(null)
   const [altaAbierta, setAltaAbierta] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  const [pagina, setPagina] = useState(0)
+  const TAMANO_PAGINA = 10
 
   const nombreCliente = useMemo(() => {
     // El nombre ya viene en cada unidad (cliente.tercero): antes se pedían aparte 500 clientes solo para esto.
@@ -98,6 +101,9 @@ export function EmpresasMinerasPage() {
 
   const actual = filtradas.find((e) => idDe(e) === seleccion) ?? filtradas[0]
   const sinCoordenadas = filtradas.length - puntos.length
+  const totalPaginas = Math.ceil(filtradas.length / TAMANO_PAGINA)
+  const paginaVisible = Math.min(pagina, Math.max(totalPaginas - 1, 0))
+  const filtradasPagina = filtradas.slice(paginaVisible * TAMANO_PAGINA, (paginaVisible + 1) * TAMANO_PAGINA)
 
   return (
     <div className="flex flex-col gap-6">
@@ -127,14 +133,14 @@ export function EmpresasMinerasPage() {
         </div></div></div>
 
       <div className="flex flex-wrap gap-2">
-        <label className="relative min-w-0 flex-1 sm:max-w-md"><span className="sr-only">Buscar cliente, RUC o unidad minera</span><input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar cliente, RUC o unidad minera" className={`${selectClass} sm:w-full`} /></label>
+        <label className="relative min-w-0 flex-1 sm:max-w-md"><span className="sr-only">Buscar cliente, RUC o unidad minera</span><input value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(0) }} placeholder="Buscar cliente, RUC o unidad minera" className={`${selectClass} sm:w-full`} /></label>
         <label className="sr-only" htmlFor="em-etapa">Etapa comercial</label>
-        <select id="em-etapa" value={filtroEtapa} onChange={(e) => setFiltroEtapa(e.target.value)} className={selectClass}>
+        <select id="em-etapa" value={filtroEtapa} onChange={(e) => { setFiltroEtapa(e.target.value); setPagina(0) }} className={selectClass}>
           <option value="">Todas las etapas</option>
           {etapas.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
         </select>
         <label className="sr-only" htmlFor="em-cliente">Cliente</label>
-        <select id="em-cliente" value={filtroCliente} onChange={(e) => setFiltroCliente(e.target.value)} className={selectClass}>
+        <select id="em-cliente" value={filtroCliente} onChange={(e) => { setFiltroCliente(e.target.value); setPagina(0) }} className={selectClass}>
           <option value="">Todos los clientes</option>
           {clientesConUnidades.map((id) => <option key={id} value={id}>{nombreCliente(id)}</option>)}
         </select>
@@ -216,7 +222,7 @@ export function EmpresasMinerasPage() {
                 <div className="flex flex-col gap-2 p-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}</div>
               ) : (
                 <ul className="max-h-90 overflow-y-auto">
-                  {filtradas.map((e) => {
+                  {filtradasPagina.map((e) => {
                     const activa = actual && idDe(e) === idDe(actual)
                     return (
                       <li key={idDe(e)}>
@@ -262,7 +268,7 @@ export function EmpresasMinerasPage() {
                 {isLoading ? (
                   <TableSkeletonRows columns={5} />
                 ) : (
-                  filtradas.map((e) => (
+                  filtradasPagina.map((e) => (
                     <tr key={idDe(e)} className="border-t border-border first:border-t-0 hover:bg-muted/60">
                       <td className="px-4 py-3">
                         <p className="font-medium">{nombreDe(e)}</p>
@@ -280,10 +286,13 @@ export function EmpresasMinerasPage() {
           </div>
         </section>
       )}
+      <PaginationBar currentPage={paginaVisible} totalPages={totalPaginas} totalItems={filtradas.length} pageSize={TAMANO_PAGINA} itemLabel="unidades mineras" onPageChange={setPagina} />
       {altaAbierta && <CrearUnidadMineraDialog onClose={() => setAltaAbierta(false)} />}
     </div>
   )
 }
+
+
 
 
 

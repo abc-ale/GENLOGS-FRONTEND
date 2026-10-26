@@ -4,11 +4,15 @@ import { useProveedores, useCrearProveedor } from '../hooks/useProveedores'
 import { ProveedorForm } from '../components/ProveedorForm'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 
 export default function ProveedoresListPage() {
   const { data = [], isLoading, isError } = useProveedores()
   const crear = useCrearProveedor()
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [pagina, setPagina] = useState(0)
+  const tamanoPagina = 10
+  const proveedoresPagina = data.slice(pagina * tamanoPagina, (pagina + 1) * tamanoPagina)
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
@@ -58,7 +62,7 @@ export default function ProveedoresListPage() {
                 </td>
               </tr>
             )}
-            {data.map((p) => (
+            {proveedoresPagina.map((p) => (
               <tr key={p.id} className="border-t border-border hover:bg-muted/50">
                 <td className="p-3">{p.tercero.tipoDocumento} {p.tercero.numeroDocumento}</td>
                 <td className="p-3 font-medium text-foreground">{p.tercero.razonSocial}</td>
@@ -70,6 +74,10 @@ export default function ProveedoresListPage() {
         </table>
         </div>
       </div>
+      <PaginationBar currentPage={pagina} totalPages={Math.ceil(data.length / tamanoPagina)} totalItems={data.length} pageSize={tamanoPagina} itemLabel="proveedores" onPageChange={setPagina} />
     </main>
   )
 }
+
+
+

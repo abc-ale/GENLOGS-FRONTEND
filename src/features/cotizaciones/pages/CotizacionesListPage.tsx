@@ -1,6 +1,7 @@
 // src/features/cotizaciones/pages/CotizacionesListPage.tsx
 
 import React, { useState } from 'react';
+import { PaginationBar } from '@/components/ui/PaginationBar';
 import { useNavigate } from 'react-router-dom';
 import { useCotizaciones } from '../hooks/useCotizaciones';
 import { useDuplicarCotizacion } from '../hooks/useCotizacionesMutations';
@@ -23,8 +24,6 @@ import {
   AlertCircle,
   Copy,
   Eye,
-  ChevronLeft,
-  ChevronRight,
   Download,
 } from 'lucide-react';
 
@@ -282,39 +281,7 @@ export const CotizacionesListPage: React.FC = () => {
                 </table>
               </div>
             </div>
-            {/* Navegación entre páginas */}
-            {data.totalPages > 1 && (
-              <div className="mt-6 flex min-w-0 flex-col items-center gap-4 rounded-2xl border border-border bg-card px-4 py-4 sm:flex-row sm:justify-between sm:px-5">
-                <p className="text-xs text-muted-foreground sm:text-sm">
-                  Mostrando <span className="font-medium text-foreground">{data.content.length}</span> de <span className="font-medium text-foreground">{data.totalElements}</span> cotizaciones
-                </p>
-                <nav aria-label="Paginación de cotizaciones" className="inline-flex items-center gap-2 rounded-xl bg-muted/60 p-1.5">
-                  <button
-                    onClick={() => handlePageChange(paginaActual - 1)}
-                    disabled={paginaActual === 0}
-                    aria-label="Página anterior"
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-foreground transition hover:bg-card hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Anterior</span>
-                  </button>
-                  <div aria-live="polite" className="flex h-9 min-w-28 items-center justify-center gap-2 rounded-lg bg-card px-3 text-sm shadow-sm">
-                    <span className="text-muted-foreground">Página</span>
-                    <span className="font-semibold text-accent">{paginaActual + 1}</span>
-                    <span className="text-muted-foreground">de {data.totalPages}</span>
-                  </div>
-                  <button
-                    onClick={() => handlePageChange(paginaActual + 1)}
-                    disabled={paginaActual >= data.totalPages - 1}
-                    aria-label="Página siguiente"
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-foreground transition hover:bg-card hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <span className="hidden sm:inline">Siguiente</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </nav>
-              </div>
-            )}
+            <PaginationBar currentPage={paginaActual} totalPages={data.totalPages} totalItems={data.totalElements} pageSize={filtros.size ?? 10} itemLabel="cotizaciones" onPageChange={handlePageChange} />
           </>
         ) : (
           <div className="text-center py-12 bg-card rounded-lg border border-border">
@@ -338,3 +305,4 @@ export const CotizacionesListPage: React.FC = () => {
     </div>
   );
 };
+

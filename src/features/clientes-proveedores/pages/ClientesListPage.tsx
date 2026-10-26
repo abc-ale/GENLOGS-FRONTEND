@@ -3,6 +3,7 @@ import { useDebounce } from 'use-debounce';
 import { ClienteTable } from '../components/ClienteTable';
 import { ClienteForm } from '../components/ClienteForm';
 import { useClientes } from '../hooks/useClientes';
+import { PaginationBar } from '@/components/ui/PaginationBar';
 import { useCrearCliente } from '../hooks/useCrearCliente';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
 import type { FiltrosCliente } from '../../../types/cliente.types';
@@ -11,8 +12,11 @@ export default function ClientesListPage() {
   const [filtros, setFiltros] = useState<FiltrosCliente>({});
   const [debounced] = useDebounce(filtros, 300);
   const [mostrarForm, setMostrarForm] = useState(false);
-  const { data = [], isLoading, isError } = useClientes(debounced);
+  const [pagina, setPagina] = useState(0);
+  const TAMANO_PAGINA = 10;
+  const { data = [], isLoading, isError } = useClientes({ ...debounced, page: 0, size: 500 });
   const crear = useCrearCliente();
+  const clientesPagina = data.slice(pagina * TAMANO_PAGINA, (pagina + 1) * TAMANO_PAGINA);
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
@@ -40,7 +44,11 @@ export default function ClientesListPage() {
       )}
 
       {isError && <ErrorBanner message="No se pudo cargar la lista de clientes." />}
-      <ClienteTable clientes={data} filtros={filtros} onFiltrosChange={setFiltros} isLoading={isLoading} />
+      <ClienteTable clientes={clientesPagina} filtros={filtros} onFiltrosChange={(nuevos) => { setFiltros(nuevos); setPagina(0); }} isLoading={isLoading} />
+      <PaginationBar currentPage={pagina} totalPages={Math.ceil(data.length / TAMANO_PAGINA)} totalItems={data.length} pageSize={TAMANO_PAGINA} itemLabel="clientes" onPageChange={setPagina} />
     </main>
   );
 }
+
+
+
