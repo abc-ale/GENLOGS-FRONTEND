@@ -18,20 +18,23 @@ interface FacturacionChartProps {
   className?: string
 }
 
-const COLOR_LINEA = "#23436C"
+const COLOR_LINEA = "#203F68"
+const COLOR_AREA = "#DCEBFA"
+const COLOR_MAXIMO = "#C96B00"
 const COLOR_COMPARATIVA = "#94A3B8"
 
 function formatearMesCorto(mes: string): string {
   const [anio, mesNum] = mes.split("-")
   const nombresMes = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"]
   const indice = Number(mesNum) - 1
-  return `${nombresMes[indice] ?? mesNum}/${anio.slice(2)}`
+  const nombre = nombresMes[indice] ?? mesNum
+  return anio ? `${nombre}/${anio.slice(2)}` : nombre
 }
 
 function formatearEje(value: number): string {
-  if (value >= 1_000_000) return `S/ ${(value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)} M`
-  if (value >= 1_000) return `S/ ${(value / 1_000).toFixed(0)} mil`
-  return `S/ ${value.toFixed(0)}`
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)} mil`
+  return value.toFixed(0)
 }
 
 function CustomTooltip({
@@ -46,8 +49,8 @@ function CustomTooltip({
   if (!active || !payload?.length || !label) return null
 
   return (
-    <div className="rounded-xl border border-border bg-background/95 p-3 shadow-lg backdrop-blur-sm">
-      <p className="mb-2 text-xs font-medium text-muted-foreground">{label}</p>
+    <div className="rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm">
+      <p className="mb-2 text-xs font-medium text-slate-500">{label}</p>
       {payload.map((entry, index) => (
         <p key={`${entry.name}-${index}`} className="text-sm font-semibold" style={{ color: entry.color }}>
           {entry.name}: {formatCurrency(Number(entry.value))}
@@ -74,45 +77,44 @@ export function FacturacionChart({ data, tipo = "lineas", className }: Facturaci
     comparativa: Number(item.comparativaAnoAnterior) || 0,
   }))
   const hasComparativa = safeData.some((item) => item.comparativaAnoAnterior != null)
+  const maxIndex = chartData.reduce(
+    (best, item, index, items) => item.facturado > items[best].facturado ? index : best,
+    0
+  )
 
   return (
     <div className={cn("rounded-lg border border-border p-4", className)}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">Facturación histórica</h2>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLOR_LINEA }} />
-            Facturado
-          </span>
-          {hasComparativa && (
-            <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLOR_COMPARATIVA }} />
-              Año anterior
-            </span>
-          )}
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-800">Facturación histórica</h2>
+          <p className="mt-0.5 text-[11px] text-slate-500">Evolución mensual</p>
         </div>
+        <span className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLOR_LINEA }} />
+          Facturado
+        </span>
       </div>
 
-      <div className="h-64 min-w-0">
+      <div className="h-48 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 12, right: 14, left: 8, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 16, right: 12, left: 4, bottom: 0 }}>
             <defs>
               <linearGradient id="facturacionArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={COLOR_LINEA} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={COLOR_LINEA} stopOpacity={0.015} />
+                <stop offset="0%" stopColor={COLOR_AREA} stopOpacity={0.95} />
+                <stop offset="100%" stopColor={COLOR_AREA} stopOpacity={0.35} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 5" vertical={false} />
+            <CartesianGrid stroke="#E2E8F0" vertical={false} />
             <XAxis
               dataKey="mes"
               axisLine={false}
               tickLine={false}
-              tickMargin={9}
-              minTickGap={18}
+              tickMargin={8}
+              minTickGap={16}
               tick={{ fill: "#64748B", fontSize: 10 }}
             />
             <YAxis
-              width={78}
+              width={64}
               axisLine={false}
               tickLine={false}
               tickMargin={6}
@@ -121,32 +123,32 @@ export function FacturacionChart({ data, tipo = "lineas", className }: Facturaci
               domain={[0, "auto"]}
             />
             <Tooltip content={<CustomTooltip />} />
-            {tipo === "lineas" ? (
-              <Area
-                type="monotone"
-                dataKey="facturado"
-                name="Facturado"
-                stroke={COLOR_LINEA}
-                strokeWidth={3}
-                fill="url(#facturacionArea)"
-                dot={false}
-                activeDot={{ r: 6, fill: "#FFFFFF", stroke: COLOR_LINEA, strokeWidth: 3 }}
-              />
-            ) : (
-              <Area
-                type="linear"
-                dataKey="facturado"
-                name="Facturado"
-                stroke={COLOR_LINEA}
-                strokeWidth={2}
-                fill="url(#facturacionArea)"
-              />
-            )}
+            <Area
+              type={tipo === "lineas" ? "monotone" : "linear"}
+              dataKey="facturado"
+              name="Facturado"
+              stroke={COLOR_LINEA}
+              strokeWidth={3}
+              fill="url(#facturacionArea)"
+              dot={(props) => {
+                const { cx, cy, index } = props
+                if (index !== maxIndex || cx == null || cy == null) return null
+                return (
+                  <g>
+                    <circle cx={cx} cy={cy} r={7} fill="white" stroke={COLOR_MAXIMO} strokeWidth={3} />
+                    <text x={cx} y={cy - 13} textAnchor="middle" fill={COLOR_MAXIMO} fontSize={12} fontWeight={700}>
+                      {formatearEje(chartData[maxIndex].facturado)}
+                    </text>
+                  </g>
+                )
+              }}
+              activeDot={{ r: 5, fill: "white", stroke: COLOR_LINEA, strokeWidth: 2.5 }}
+            />
             {hasComparativa && (
               <Line
                 type="monotone"
                 dataKey="comparativa"
-                name="comparativa"
+                name="Año anterior"
                 stroke={COLOR_COMPARATIVA}
                 strokeWidth={2}
                 strokeDasharray="5 5"

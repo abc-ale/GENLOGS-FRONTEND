@@ -1,7 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import * as productosApi from "@/api/productosApi"
-import type { Producto, ProductoFiltros } from "@/types/producto.types"
-import type { PageResponse } from "@/types/common.types"
+import type { ProductoFiltros } from "@/types/producto.types"
 
 export const productosKeys = {
   all: ["productos"] as const,
@@ -9,13 +8,6 @@ export const productosKeys = {
   detalle: (id: number) => ["productos", "detalle", id] as const,
 }
 
-const emptyPageResponse: PageResponse<Producto> = {
-  content: [],
-  totalElements: 0,
-  totalPages: 0,
-  page: 0,
-  size: 12,
-}
 
 /** Catálogo paginado. Mantiene la página anterior visible mientras carga la siguiente. */
 export function useProductos(filtros: ProductoFiltros) {
@@ -24,8 +16,6 @@ export function useProductos(filtros: ProductoFiltros) {
     queryFn: () => productosApi.listarProductos(filtros),
     placeholderData: keepPreviousData,
     staleTime: 30_000,
-    // FIX: initialData para evitar undefined
-    initialData: emptyPageResponse,
   })
 }
 

@@ -76,8 +76,72 @@ export const cotizacionesApi = {
   },
 
   async obtenerCotizacion(id: number): Promise<Cotizacion> {
-    const response = await axiosClient.get<Cotizacion>(`/cotizaciones/${id}`)
-    return response.data
+    const [cotizacionResponse, lineasResponse, seguimientoResponse, adjuntosResponse] = await Promise.all([
+      axiosClient.get<Record<string, unknown>>(`/cotizaciones/${id}`),
+      axiosClient.get<Record<string, unknown>[]>(`/cotizaciones/${id}/lineas`),
+      axiosClient.get<Record<string, unknown>[]>(`/cotizaciones/${id}/seguimiento`),
+      axiosClient.get<Record<string, unknown>[]>(`/cotizaciones/${id}/adjuntos`),
+    ])
+
+    const base = normalizarCotizacionApi(cotizacionResponse.data)
+    const detalles = lineasResponse.data.map((linea) => {
+      const producto = linea.productoNombre == null ? undefined : String(linea.productoNombre)
+      const servicio = linea.servicioNombre == null ? undefined : String(linea.servicioNombre)
+      const descripcion = String(linea.descripcionPersonalizada ?? producto ?? servicio ?? "")
+      return {
+        idCotizacionDetalle: Number(linea.idCotizacionDetalle ?? 0),
+        id: Number(linea.idCotizacionDetalle ?? 0),
+        idProducto: linea.idProducto == null ? null : Number(linea.idProducto),
+        idServicio: linea.idServicio == null ? null : Number(linea.idServicio),
+        idUnidadMedida: 0,
+        producto,
+        servicio,
+        descripcion,
+        descripcionPersonalizada: linea.descripcionPersonalizada == null ? null : String(linea.descripcionPersonalizada),
+        cantidad: Number(linea.cantidad ?? 0),
+        precioUnitario: Number(linea.precioUnitario ?? 0),
+        descuentoUnitario: Number(linea.descuentoUnitario ?? 0),
+        subtotal: Number(linea.importeLinea ?? 0),
+        importeLinea: Number(linea.importeLinea ?? 0),
+      }
+    })
+    const seguimientos = seguimientoResponse.data.map((evento) => {
+      const estado = String(evento.estado ?? "BORRADOR").toUpperCase().replaceAll(" ", "_") as Cotizacion["estadoCotizacion"]
+      const fechaEvento = String(evento.fechaEvento ?? "")
+      const comentario = String(evento.comentario ?? "")
+      return {
+        idSeguimiento: Number(evento.idSeguimiento ?? 0),
+        idCotizacion: id,
+        idEstadoCotizacion: 0,
+        estadoCodigo: estado,
+        estadoAnterior: "BORRADOR" as Cotizacion["estadoCotizacion"],
+        estadoNuevo: estado,
+        fechaEvento,
+        fecha: fechaEvento,
+        usuarioNombre: evento.usuario == null ? undefined : String(evento.usuario),
+        comentario,
+        observaciones: comentario,
+      }
+    })
+    const adjuntos = adjuntosResponse.data.map((archivo) => ({
+      idAdjunto: Number(archivo.idAdjunto ?? 0),
+      idCotizacion: id,
+      nombreArchivo: String(archivo.nombreArchivo ?? "Adjunto"),
+      urlArchivo: String(archivo.urlArchivo ?? ""),
+      urlCloudinary: String(archivo.urlArchivo ?? ""),
+      tipoArchivo: "application/octet-stream",
+      tamanio: 0,
+      subidoPor: "",
+    }))
+
+    return {
+      ...base,
+      fechaValidez: String(cotizacionResponse.data.fechaValidez ?? ""),
+      condicionPago: String(cotizacionResponse.data.condicionPago ?? ""),
+      detalles,
+      seguimientos,
+      adjuntos,
+    }
   },
 
   async crearCotizacion(data: CreateCotizacionRequest): Promise<Cotizacion> {

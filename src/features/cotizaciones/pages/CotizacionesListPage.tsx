@@ -64,6 +64,21 @@ export const CotizacionesListPage: React.FC = () => {
       },
     });
   };
+  const paginaActual = filtros.page ?? 0;
+  const totalPaginas = data?.totalPages ?? 0;
+  const paginasVisibles: Array<number | "ellipsis-start" | "ellipsis-end"> = [];
+
+  if (totalPaginas <= 5) {
+    paginasVisibles.push(...Array.from({ length: totalPaginas }, (_, i) => i));
+  } else {
+    const inicio = Math.max(1, paginaActual - 1);
+    const fin = Math.min(totalPaginas - 2, paginaActual + 1);
+    paginasVisibles.push(0);
+    if (inicio > 1) paginasVisibles.push("ellipsis-start");
+    for (let pagina = inicio; pagina <= fin; pagina += 1) paginasVisibles.push(pagina);
+    if (fin < totalPaginas - 2) paginasVisibles.push("ellipsis-end");
+    paginasVisibles.push(totalPaginas - 1);
+  }
 
   return (
     <div className="min-h-screen bg-muted py-8 px-4">
@@ -281,44 +296,28 @@ export const CotizacionesListPage: React.FC = () => {
                 </table>
               </div>
             </div>
-
-            {/* Pagination */}
+            {/* Paginación compacta */}
             {data.totalPages > 1 && (
-              <div className="flex justify-between items-center mt-6 p-4 bg-card rounded-lg border border-border">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {data.content.length} de {data.totalElements} cotizaciones
+              <div className="mt-6 flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <p className="text-xs text-muted-foreground sm:text-sm">
+                  Página {paginaActual + 1} de {data.totalPages}
+                  <span className="hidden sm:inline"> · Mostrando {data.content.length} de {data.totalElements} cotizaciones</span>
                 </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handlePageChange(filtros.page! - 1)}
-                    disabled={filtros.page === 0}
-                    className="p-2 border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
+                <nav aria-label="Paginación de cotizaciones" className="flex items-center justify-center gap-1">
+                  <button onClick={() => handlePageChange(paginaActual - 1)} disabled={paginaActual === 0} aria-label="Página anterior" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">
+                    <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: data.totalPages }).map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handlePageChange(i)}
-                        className={`px-3 py-1 rounded-lg transition ${
-                          filtros.page === i
-                            ? 'bg-accent text-white'
-                            : 'border border-border hover:bg-muted'
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => handlePageChange(filtros.page! + 1)}
-                    disabled={filtros.page! >= data.totalPages - 1}
-                    className="p-2 border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  >
-                    <ChevronRight className="w-4 h-4" />
+                  {paginasVisibles.map((pagina, index) => typeof pagina === "number" ? (
+                    <button key={pagina} onClick={() => handlePageChange(pagina)} aria-current={paginaActual === pagina ? "page" : undefined} aria-label={`Página ${pagina + 1}`} className={`h-9 min-w-9 rounded-lg px-2 text-sm font-medium transition ${paginaActual === pagina ? "bg-accent text-white shadow-sm" : "border border-border text-foreground hover:bg-muted"}`}>
+                      {pagina + 1}
+                    </button>
+                  ) : (
+                    <span key={`${pagina}-${index}`} aria-hidden="true" className="w-7 text-center text-sm text-muted-foreground">…</span>
+                  ))}
+                  <button onClick={() => handlePageChange(paginaActual + 1)} disabled={paginaActual >= data.totalPages - 1} aria-label="Página siguiente" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">
+                    <ChevronRight className="h-4 w-4" />
                   </button>
-                </div>
+                </nav>
               </div>
             )}
           </>
