@@ -4,7 +4,7 @@ export const EstadoFacturacion = { EMITIDA: 'EMITIDA', PARCIAL: 'PARCIAL', PAGAD
 export type EstadoFacturacion = (typeof EstadoFacturacion)[keyof typeof EstadoFacturacion]
 export interface TipoComprobanteCatalogo { idTipoComprobante: number; codigoTipo: TipoComprobante; nombreTipo: string; seriePrefijo: string; requiereRuc: boolean }
 export interface EstadoFacturacionCatalogo { idEstadoFacturacion: number; codigoEstado: EstadoFacturacion; nombreEstado: string; esFinal: boolean }
-export interface DetalleFacturacion { idDetalleFacturacion: number; idFacturacion: number; idProducto?: number | null; idServicio?: number | null; descripcionPersonalizada?: string | null; cantidad: number; precioUnitario: number; descuentoUnitario: number; importeLinea: number }
+export interface DetalleFacturacion { idDetalleFacturacion: number; idFacturacion?: number; idProducto?: number | null; productoNombre?: string | null; idServicio?: number | null; servicioNombre?: string | null; descripcionPersonalizada?: string | null; cantidad: number; precioUnitario: number; descuentoUnitario: number; importeLinea: number }
 export interface Factura {
   idFacturacion: number
   id?: number
@@ -26,6 +26,7 @@ export interface Factura {
   estadoCodigo?: EstadoFacturacion
   numeroOrdenCompra?: string
   cliente?: string
+  clienteRazonSocial?: string
   clienteNombre?: string
   clienteId?: number
   tipo?: TipoComprobante

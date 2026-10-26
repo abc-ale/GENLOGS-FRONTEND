@@ -103,16 +103,19 @@ export function useDescargarPDF(
       const link = document.createElement('a');
       link.href = url;
       link.download = nombreArchivo || `cotizacion-${cotizacionId}.pdf`;
-      link.style.display = "none";
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      // No revocar el Blob antes de que el navegador comience a guardarlo.
-      window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 1500);
     },
-    onError: (error) => {
+    onError: async (error) => {
       console.error('Error al descargar PDF:', error);
-      window.alert('No se pudo descargar el PDF. Verifica tu conexión e inténtalo nuevamente.');
+      const responseData: unknown = error.response?.data;
+      const message = responseData instanceof Blob
+        ? await responseData.text()
+        : error.response?.data?.message || error.message;
+      window.alert(`No se pudo descargar el PDF de la cotización. ${message}`);
     },
   });
 }
@@ -139,4 +142,3 @@ export function useDuplicarCotizacion(): UseMutationResult<
     },
   });
 }
-

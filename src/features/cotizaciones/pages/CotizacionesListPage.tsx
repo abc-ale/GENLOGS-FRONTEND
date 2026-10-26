@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { PaginationBar } from '@/components/ui/PaginationBar';
 import { useNavigate } from 'react-router-dom';
 import { useCotizaciones } from '../hooks/useCotizaciones';
+import { cotizacionesApi } from '@/api/cotizacionesApi';
 import { useDuplicarCotizacion } from '../hooks/useCotizacionesMutations';
 import {
   EstadoCotizacion,
@@ -37,6 +38,7 @@ export const CotizacionesListPage: React.FC = () => {
   });
 
   const [showFilters, setShowFilters] = useState(false);
+  const [descargandoId, setDescargandoId] = useState<number | null>(null);
   const { data, isLoading, error } = useCotizaciones(filtros);
   const { mutate: duplicarCotizacion, isPending: isDuplicarPending } =
     useDuplicarCotizacion();
@@ -51,6 +53,29 @@ export const CotizacionesListPage: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     setFiltros((prev) => ({ ...prev, page: newPage }));
+  };
+
+  const handleDescargarPdf = async (id: number | undefined, codigo: string) => {
+    if (!id) return;
+    try {
+      setDescargandoId(id);
+      const blob = await cotizacionesApi.descargarCotizacionPDF(id);
+      if (!blob.size) throw new Error('El servidor devolvió un archivo vacío.');
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cotizacion-${codigo || id}.pdf`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 1500);
+    } catch (error) {
+      console.error('Error al descargar PDF de cotización:', error);
+      window.alert(`No se pudo descargar el PDF de la cotización. ${error instanceof Error ? error.message : ''}`);
+    } finally {
+      setDescargandoId(null);
+    }
   };
 
   const handleDuplicar = (id: number) => {
@@ -268,10 +293,14 @@ export const CotizacionesListPage: React.FC = () => {
                               <Copy className="w-4 h-4" />
                             </button>
                             <button
-                              className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition"
+                              type="button"
+                              onClick={() => void handleDescargarPdf(cotizacion.id ?? cotizacion.idCotizacion, cotizacion.codigo ?? cotizacion.codigoCotizacion)}
+                              disabled={descargandoId === (cotizacion.id ?? cotizacion.idCotizacion)}
+                              className="p-2 text-muted-foreground hover:bg-muted disabled:opacity-50 rounded-lg transition"
                               title="Descargar PDF"
+                              aria-label={`Descargar PDF de ${cotizacion.codigo ?? cotizacion.codigoCotizacion}`}
                             >
-                              <Download className="w-4 h-4" />
+                              {descargandoId === (cotizacion.id ?? cotizacion.idCotizacion) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                             </button>
                           </div>
                         </td>
@@ -305,4 +334,3 @@ export const CotizacionesListPage: React.FC = () => {
     </div>
   );
 };
-
