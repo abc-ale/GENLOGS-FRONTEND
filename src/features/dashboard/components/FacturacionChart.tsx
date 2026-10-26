@@ -47,7 +47,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   )
 }
 
-export function FacturacionChart({ data, tipo = "barras", className }: FacturacionChartProps) {
+export function FacturacionChart({ data, tipo = "lineas", className }: FacturacionChartProps) {
   const safeData = Array.isArray(data) ? data : []
   
   if (safeData.length === 0) {
@@ -88,9 +88,9 @@ export function FacturacionChart({ data, tipo = "barras", className }: Facturaci
         </div>
       </div>
 
-      <div className="h-64">
+      <div className="h-64 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
-          <ChartComponent data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <ChartComponent data={chartData} margin={{ top: 12, right: 18, left: 8, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
             <XAxis
               dataKey="mes"
@@ -104,7 +104,13 @@ export function FacturacionChart({ data, tipo = "barras", className }: Facturaci
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(value) => formatCurrency(value).replace("PEN", "").trim()}
+              width={72}
+              tickFormatter={(value) => {
+                const amount = Number(value)
+                if (amount >= 1_000_000) return `S/ ${(amount / 1_000_000).toFixed(1)} M`
+                if (amount >= 1_000) return `S/ ${(amount / 1_000).toFixed(0)} mil`
+                return `S/ ${amount.toFixed(0)}`
+              }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend

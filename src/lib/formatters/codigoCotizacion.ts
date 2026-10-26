@@ -24,12 +24,32 @@ export function formatearMoneda(
   moneda: string = 'PEN',
   idioma: string = 'es-PE'
 ): string {
-  return new Intl.NumberFormat(idioma, {
-    style: 'currency',
-    currency: moneda,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(monto);
+  // La API puede devolver el código ISO (PEN, USD, EUR) o directamente
+  // el símbolo de BD (S/, $, €). Intl.NumberFormat solo acepta códigos ISO.
+  const valor = moneda.trim().toUpperCase();
+  const codigoMoneda =
+    valor === 'S/' || valor === 'S/.' || valor === 'S/ ' || valor === 'SOL' || valor === 'SOLES'
+      ? 'PEN'
+      : valor === '$' || valor === 'US$' || valor === 'DÓLAR' || valor === 'DOLAR'
+        ? 'USD'
+        : valor === '€' || valor === 'EURO' || valor === 'EUROS'
+          ? 'EUR'
+          : valor;
+
+  try {
+    return new Intl.NumberFormat(idioma, {
+      style: 'currency',
+      currency: codigoMoneda,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(monto);
+  } catch {
+    // Evita que un valor inesperado recibido de la API derribe toda la ruta.
+    return `${moneda} ${new Intl.NumberFormat(idioma, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(monto)}`;
+  }
 }
 
 /**

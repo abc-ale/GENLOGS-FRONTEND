@@ -16,15 +16,16 @@ interface CotizacionesPorEstadoChartProps {
 }
 
 const ESTADO_COLORES: Record<string, string> = {
-  APROBADA: "var(--success)",
-  PENDIENTE: "var(--chart-5)",
-  RECHAZADA: "var(--destructive)",
-  BORRADOR: "var(--muted-foreground)",
-  ENVIADA: "var(--chart-1)",
-  EN_NEGOCIACION: "var(--chart-3)",
-  ACEPTADA: "var(--success)",
-  CONVERTIDA_OC: "var(--primary)",
-  VENCIDA: "var(--warning)",
+  APROBADA: "#16A085",
+  PENDIENTE: "#F4A261",
+  RECHAZADA: "#E76F51",
+  BORRADOR: "#94A3B8",
+  ENVIADA: "#3B82F6",
+  EN_NEGOCIACION: "#8B5CF6",
+  ACEPTADA: "#10B981",
+  CONVERTIDA_OC: "#0EA5A4",
+  VENCIDA: "#D97706",
+  ANULADA: "#64748B",
 }
 
 const ESTADO_ETIQUETAS: Record<string, string> = {
@@ -37,6 +38,7 @@ const ESTADO_ETIQUETAS: Record<string, string> = {
   ACEPTADA: "Aceptada",
   CONVERTIDA_OC: "Convertida a OC",
   VENCIDA: "Vencida",
+  ANULADA: "Anulada",
 }
 
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string; payload: CotizacionEstadoItem }> }) {
@@ -98,7 +100,7 @@ export function CotizacionesPorEstadoChart({ data, className }: CotizacionesPorE
   const totalCantidad = entradas.reduce((acc, item) => acc + Number(item.cantidad), 0)
 
   const chartData = entradas.map((item) => {
-    const estado = String(item.estado ?? "").trim() || "DESCONOCIDO"
+    const estado = (String(item.estado ?? "").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")) || "DESCONOCIDO"
     const cantidad = Number(item.cantidad)
     const porcentajeBackend = Number(item.porcentaje)
     const porcentaje =

@@ -50,7 +50,7 @@ export function IndicadorCard({
   iconColor = "text-primary",
 }: IndicadorCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-shadow hover:shadow-lg">
+    <div className="group relative overflow-hidden min-w-0 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5 transition-shadow hover:shadow-lg">
       {/* Mancha de color desenfocada propia de cada tarjeta — asoma por una
           esquina como en un widget "liquid glass", tiñendo el vidrio con
           el color semántico del indicador (éxito, alerta, acento…). */}
@@ -79,7 +79,7 @@ export function IndicadorCard({
       </div>
       <div className="relative min-w-0 flex-1 mt-3">
         <p className="text-xs font-medium text-muted-foreground leading-tight line-clamp-2">{label}</p>
-        <p className="mt-1.5 text-3xl font-bold text-foreground tracking-tight font-mono">{value}</p>
+        <p className={cn("mt-1.5 min-w-0 font-bold text-foreground tracking-tight tabular-nums leading-tight break-words", value.length > 16 ? "text-base sm:text-lg" : value.length > 12 ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl")}>{value}</p>
         {subtitle && <p className="mt-1 text-xs text-muted-foreground line-clamp-1">{subtitle}</p>}
       </div>
     </div>
