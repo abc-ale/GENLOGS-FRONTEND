@@ -27,7 +27,7 @@ export const cotizacionesApi = {
 
     params.append("page", String(filtros?.page ?? 0))
     params.append("size", String(filtros?.size ?? 10))
-    params.append("sortBy", filtros?.sortBy ?? "fechaCreacion")
+    params.append("sortBy", filtros?.sortBy === "fechaCreacion" ? "fechaCotizacion" : (filtros?.sortBy ?? "fechaCotizacion"))
     params.append("sortDir", filtros?.sortDir ?? "DESC")
 
     const response = await axiosClient.get<CotizacionesListResponse>("/cotizaciones", { params })
@@ -48,7 +48,7 @@ export const cotizacionesApi = {
     id: number,
     data: UpdateEstadoCotizacionRequest
   ): Promise<Cotizacion> {
-    const response = await axiosClient.put<Cotizacion>(`/cotizaciones/${id}/estado`, data)
+    const response = await axiosClient.patch<Cotizacion>(`/cotizaciones/${id}/estado`, { codigoEstado: data.estadoNuevo ?? data.idEstadoCotizacion, comentario: data.comentario ?? data.observaciones })
     return response.data
   },
 

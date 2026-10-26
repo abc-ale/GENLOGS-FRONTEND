@@ -63,7 +63,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   )
 }
 
-function CustomLegend({ payload = [] }: { payload?: Array<{ value: number; color: string; id: string }> }) {
+function CustomLegend({ payload = [] }: { payload?: Array<{ value: string; color: string; payload?: CotizacionEstadoItem }> }) {
   return (
     <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
       {payload.map((entry, index) => (
@@ -73,10 +73,10 @@ function CustomLegend({ payload = [] }: { payload?: Array<{ value: number; color
             style={{ backgroundColor: entry.color }}
           />
           <span className="text-xs text-muted-foreground">
-            {ESTADO_ETIQUETAS[entry.id] ?? entry.id}
+            {ESTADO_ETIQUETAS[String(entry.value)] ?? String(entry.value)}
           </span>
           <span className="text-xs font-medium text-foreground">
-            ({formatNumber(entry.value)})
+            ({formatNumber(Number(entry.payload?.cantidad ?? 0))})
           </span>
         </div>
       ))}
@@ -150,11 +150,7 @@ export function CotizacionesPorEstadoChart({ data, className }: CotizacionesPorE
               paddingAngle={2}
               dataKey="cantidad"
               nameKey="estado"
-              label={({ payload, percent }) => {
-                const pct = Number(percent ?? 0)
-                if (!(pct > 0) || !payload) return ""
-                return `${payload.label} ${(pct * 100).toFixed(1)}%`
-              }}
+              label={false}
               labelLine={false}
             >
               {chartData.map((entry, index) => (
