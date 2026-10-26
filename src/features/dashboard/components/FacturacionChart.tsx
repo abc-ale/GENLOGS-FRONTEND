@@ -136,7 +136,7 @@ export function FacturacionChart({ data, tipo = "lineas", className }: Facturaci
                 return (
                   <g>
                     <circle cx={cx} cy={cy} r={7} fill="white" stroke={COLOR_MAXIMO} strokeWidth={3} />
-                    <text x={cx} y={cy - 13} textAnchor="middle" fill={COLOR_MAXIMO} fontSize={12} fontWeight={700}>
+                    <text x={cx - 10} y={cy + 24} textAnchor="end" fill={COLOR_MAXIMO} fontSize={12} fontWeight={700}>
                       {formatearEje(chartData[maxIndex].facturado)}
                     </text>
                   </g>

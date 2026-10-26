@@ -65,20 +65,6 @@ export const CotizacionesListPage: React.FC = () => {
     });
   };
   const paginaActual = filtros.page ?? 0;
-  const totalPaginas = data?.totalPages ?? 0;
-  const paginasVisibles: Array<number | "ellipsis-start" | "ellipsis-end"> = [];
-
-  if (totalPaginas <= 5) {
-    paginasVisibles.push(...Array.from({ length: totalPaginas }, (_, i) => i));
-  } else {
-    const inicio = Math.max(1, paginaActual - 1);
-    const fin = Math.min(totalPaginas - 2, paginaActual + 1);
-    paginasVisibles.push(0);
-    if (inicio > 1) paginasVisibles.push("ellipsis-start");
-    for (let pagina = inicio; pagina <= fin; pagina += 1) paginasVisibles.push(pagina);
-    if (fin < totalPaginas - 2) paginasVisibles.push("ellipsis-end");
-    paginasVisibles.push(totalPaginas - 1);
-  }
 
   return (
     <div className="min-h-screen bg-muted py-8 px-4">
@@ -296,25 +282,34 @@ export const CotizacionesListPage: React.FC = () => {
                 </table>
               </div>
             </div>
-            {/* Paginación compacta */}
+            {/* Navegación entre páginas */}
             {data.totalPages > 1 && (
-              <div className="mt-6 flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+              <div className="mt-6 flex min-w-0 flex-col items-center gap-4 rounded-2xl border border-border bg-card px-4 py-4 sm:flex-row sm:justify-between sm:px-5">
                 <p className="text-xs text-muted-foreground sm:text-sm">
-                  Página {paginaActual + 1} de {data.totalPages}
-                  <span className="hidden sm:inline"> · Mostrando {data.content.length} de {data.totalElements} cotizaciones</span>
+                  Mostrando <span className="font-medium text-foreground">{data.content.length}</span> de <span className="font-medium text-foreground">{data.totalElements}</span> cotizaciones
                 </p>
-                <nav aria-label="Paginación de cotizaciones" className="flex items-center justify-center gap-1">
-                  <button onClick={() => handlePageChange(paginaActual - 1)} disabled={paginaActual === 0} aria-label="Página anterior" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">
+                <nav aria-label="Paginación de cotizaciones" className="inline-flex items-center gap-2 rounded-xl bg-muted/60 p-1.5">
+                  <button
+                    onClick={() => handlePageChange(paginaActual - 1)}
+                    disabled={paginaActual === 0}
+                    aria-label="Página anterior"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-foreground transition hover:bg-card hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                  >
                     <ChevronLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Anterior</span>
                   </button>
-                  {paginasVisibles.map((pagina, index) => typeof pagina === "number" ? (
-                    <button key={pagina} onClick={() => handlePageChange(pagina)} aria-current={paginaActual === pagina ? "page" : undefined} aria-label={`Página ${pagina + 1}`} className={`h-9 min-w-9 rounded-lg px-2 text-sm font-medium transition ${paginaActual === pagina ? "bg-accent text-white shadow-sm" : "border border-border text-foreground hover:bg-muted"}`}>
-                      {pagina + 1}
-                    </button>
-                  ) : (
-                    <span key={`${pagina}-${index}`} aria-hidden="true" className="w-7 text-center text-sm text-muted-foreground">…</span>
-                  ))}
-                  <button onClick={() => handlePageChange(paginaActual + 1)} disabled={paginaActual >= data.totalPages - 1} aria-label="Página siguiente" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">
+                  <div aria-live="polite" className="flex h-9 min-w-28 items-center justify-center gap-2 rounded-lg bg-card px-3 text-sm shadow-sm">
+                    <span className="text-muted-foreground">Página</span>
+                    <span className="font-semibold text-accent">{paginaActual + 1}</span>
+                    <span className="text-muted-foreground">de {data.totalPages}</span>
+                  </div>
+                  <button
+                    onClick={() => handlePageChange(paginaActual + 1)}
+                    disabled={paginaActual >= data.totalPages - 1}
+                    aria-label="Página siguiente"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-foreground transition hover:bg-card hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <span className="hidden sm:inline">Siguiente</span>
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </nav>

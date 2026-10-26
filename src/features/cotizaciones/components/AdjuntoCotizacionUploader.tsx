@@ -210,7 +210,7 @@ export const AdjuntoCotizacionUploader: React.FC<AdjuntoCotizacionUploaderProps>
 
                 <div className="flex items-center gap-2 ml-4">
                   <a
-                    href={adjunto.urlCloudinary}
+                    href={adjunto.urlArchivo || adjunto.urlCloudinary}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex p-2 text-accent hover:bg-accent/10 rounded-lg transition"
@@ -253,9 +253,7 @@ export const AdjuntoCotizacionUploader: React.FC<AdjuntoCotizacionUploaderProps>
       {/* Info */}
       <div className="mt-6 p-4 bg-accent/10 border border-accent/30 rounded-lg">
         <p className="text-sm text-accent">
-          <span className="font-semibold">💡 Consejo:</span> Los adjuntos se
-          almacenan en Cloudinary y estarán disponibles cuando se comparta la
-          cotización.
+          <span className="font-semibold">💡 Información:</span> Los adjuntos se guardan en el almacenamiento configurado en el servidor y quedan vinculados a esta cotización.
         </p>
       </div>
     </div>

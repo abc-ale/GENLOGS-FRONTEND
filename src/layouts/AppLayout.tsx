@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { label: 'Cotizaciones', path: '/cotizaciones', icon: FileText },
   { label: 'Órdenes de compra', path: '/ordenes-compra', icon: ShoppingCart },
+  { label: 'Facturación', path: '/facturacion', icon: Receipt },
   { label: 'Clientes', path: '/clientes', icon: Users },
   { label: 'Proveedores', path: '/proveedores', icon: Truck },
 ];
@@ -41,7 +42,6 @@ const catalogoSubItems: NavItem[] = [
 ];
 
 const adminNavItems: NavItem[] = [
-  { label: 'Facturación', path: '/facturacion', icon: Receipt },
   { label: 'Empresas mineras', path: '/empresas-mineras', icon: Building2 },
   { label: 'Reportes', path: '/reportes', icon: BarChart3 },
   { label: 'Usuarios', path: '/usuarios', icon: UserCog },
