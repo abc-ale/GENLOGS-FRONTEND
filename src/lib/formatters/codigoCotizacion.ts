@@ -100,6 +100,7 @@ export function calcularTotalConIGV(subtotal: number, tasaIGV: number = 0.18): n
  */
 export function formatearFecha(fecha: string | Date): string {
   const date = typeof fecha === 'string' ? new Date(fecha) : fecha;
+  if (!date || Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('es-PE', {
     year: 'numeric',
     month: '2-digit',
@@ -114,6 +115,7 @@ export function formatearFecha(fecha: string | Date): string {
  */
 export function formatearFechaHora(fecha: string | Date): string {
   const date = typeof fecha === 'string' ? new Date(fecha) : fecha;
+  if (!date || Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('es-PE', {
     year: 'numeric',
     month: '2-digit',

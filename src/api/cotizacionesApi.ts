@@ -9,6 +9,39 @@ import type {
   AdjuntoCotizacion,
 } from "@/types/cotizacion.types"
 
+function normalizarCotizacionApi(raw: Record<string, unknown>): Cotizacion {
+  const estado = String(raw.estadoCodigo ?? raw.estadoCotizacion ?? raw.estado ?? "BORRADOR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+  const monedaOriginal = String(raw.monedaCodigo ?? raw.moneda ?? "PEN").trim().toUpperCase()
+  const moneda = monedaOriginal === "S/" || monedaOriginal === "S/." || monedaOriginal === "SOL" ? "PEN"
+    : monedaOriginal === "$" || monedaOriginal === "US$" ? "USD"
+      : monedaOriginal === "€" ? "EUR" : monedaOriginal
+  const fecha = String(raw.fechaCotizacion ?? raw.fechaCreacion ?? "")
+
+  return {
+    ...raw,
+    idCotizacion: Number(raw.idCotizacion ?? raw.id ?? 0),
+    id: Number(raw.idCotizacion ?? raw.id ?? 0),
+    codigoCotizacion: String(raw.codigoCotizacion ?? raw.codigo ?? ""),
+    codigo: String(raw.codigoCotizacion ?? raw.codigo ?? ""),
+    clienteNombre: String(raw.clienteRazonSocial ?? raw.clienteNombre ?? raw.cliente ?? ""),
+    cliente: String(raw.clienteRazonSocial ?? raw.clienteNombre ?? raw.cliente ?? ""),
+    fechaCotizacion: fecha,
+    fechaCreacion: fecha,
+    estadoCotizacion: estado as Cotizacion["estadoCotizacion"],
+    estadoCodigo: estado as Cotizacion["estadoCotizacion"],
+    moneda: moneda as Cotizacion["moneda"],
+    subtotal: Number(raw.subtotal ?? 0),
+    igv: Number(raw.igv ?? 0),
+    total: Number(raw.total ?? 0),
+    detalles: Array.isArray(raw.detalles) ? raw.detalles as Cotizacion["detalles"] : [],
+  } as unknown as Cotizacion
+}
 export const cotizacionesApi = {
   async listarCotizaciones(
     filtros?: CotizacionesFilterParams
@@ -30,8 +63,16 @@ export const cotizacionesApi = {
     params.append("sortBy", filtros?.sortBy === "fechaCreacion" ? "fechaCotizacion" : (filtros?.sortBy ?? "fechaCotizacion"))
     params.append("sortDir", filtros?.sortDir ?? "DESC")
 
-    const response = await axiosClient.get<CotizacionesListResponse>("/cotizaciones", { params })
-    return response.data
+    const response = await axiosClient.get<Record<string, unknown>>("/cotizaciones", { params })
+    const pagina = response.data
+    const elementos = Array.isArray(pagina.content) ? pagina.content as Record<string, unknown>[] : []
+    return {
+      content: elementos.map(normalizarCotizacionApi),
+      totalElements: Number(pagina.totalElements ?? 0),
+      totalPages: Number(pagina.totalPages ?? 0),
+      currentPage: Number(pagina.page ?? pagina.currentPage ?? 0),
+      pageSize: Number(pagina.size ?? pagina.pageSize ?? 10),
+    }
   },
 
   async obtenerCotizacion(id: number): Promise<Cotizacion> {

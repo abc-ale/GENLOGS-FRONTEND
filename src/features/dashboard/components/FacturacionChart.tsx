@@ -1,14 +1,12 @@
 import {
-  BarChart,
-  Bar,
-  LineChart,
+  Area,
+  AreaChart,
+  CartesianGrid,
   Line,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts"
 import type { FacturacionHistoricoItem } from "@/types/dashboard.types"
 import { formatCurrency } from "@/lib/formatters/currency"
@@ -20,10 +18,8 @@ interface FacturacionChartProps {
   className?: string
 }
 
-const COLORES = {
-  facturado: "var(--chart-1)",
-  comparativa: "var(--muted-foreground)",
-}
+const COLOR_LINEA = "#23436C"
+const COLOR_COMPARATIVA = "#94A3B8"
 
 function formatearMesCorto(mes: string): string {
   const [anio, mesNum] = mes.split("-")
@@ -32,15 +28,29 @@ function formatearMesCorto(mes: string): string {
   return `${nombresMes[indice] ?? mesNum}/${anio.slice(2)}`
 }
 
-function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) {
-  if (!active || !payload || !label) return null
+function formatearEje(value: number): string {
+  if (value >= 1_000_000) return `S/ ${(value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)} M`
+  if (value >= 1_000) return `S/ ${(value / 1_000).toFixed(0)} mil`
+  return `S/ ${value.toFixed(0)}`
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: Array<{ value: number; name: string; color: string }>
+  label?: string
+}) {
+  if (!active || !payload?.length || !label) return null
 
   return (
-    <div className="rounded-lg border border-border bg-background p-3 shadow-lg">
-      <p className="text-xs font-medium text-muted-foreground mb-2">{formatearMesCorto(label)}</p>
+    <div className="rounded-xl border border-border bg-background/95 p-3 shadow-lg backdrop-blur-sm">
+      <p className="mb-2 text-xs font-medium text-muted-foreground">{label}</p>
       {payload.map((entry, index) => (
-        <p key={index} className="text-sm" style={{ color: entry.color }}>
-          {entry.name}: {formatCurrency(entry.value)}
+        <p key={`${entry.name}-${index}`} className="text-sm font-semibold" style={{ color: entry.color }}>
+          {entry.name}: {formatCurrency(Number(entry.value))}
         </p>
       ))}
     </div>
@@ -49,7 +59,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 
 export function FacturacionChart({ data, tipo = "lineas", className }: FacturacionChartProps) {
   const safeData = Array.isArray(data) ? data : []
-  
+
   if (safeData.length === 0) {
     return (
       <div className={cn("rounded-lg border border-border p-8 text-center", className)}>
@@ -60,28 +70,23 @@ export function FacturacionChart({ data, tipo = "lineas", className }: Facturaci
 
   const chartData = safeData.map((item) => ({
     mes: formatearMesCorto(item.mes),
-    facturado: item.monto,
-    comparativa: item.comparativaAnoAnterior ?? 0,
-    mesOriginal: item.mes,
+    facturado: Number(item.monto) || 0,
+    comparativa: Number(item.comparativaAnoAnterior) || 0,
   }))
-
-  const hasComparativa = safeData.some((item) => item.comparativaAnoAnterior !== undefined && item.comparativaAnoAnterior !== null)
-
-  const ChartComponent = tipo === "lineas" ? LineChart : BarChart
-  const SeriesComponent = tipo === "lineas" ? Line : Bar
+  const hasComparativa = safeData.some((item) => item.comparativaAnoAnterior != null)
 
   return (
     <div className={cn("rounded-lg border border-border p-4", className)}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold">Facturación histórica</h2>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: COLORES.facturado }} />
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLOR_LINEA }} />
             Facturado
           </span>
           {hasComparativa && (
-            <span className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: COLORES.comparativa }} />
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLOR_COMPARATIVA }} />
               Año anterior
             </span>
           )}
@@ -90,58 +95,66 @@ export function FacturacionChart({ data, tipo = "lineas", className }: Facturaci
 
       <div className="h-64 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
-          <ChartComponent data={chartData} margin={{ top: 12, right: 18, left: 8, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+          <AreaChart data={chartData} margin={{ top: 12, right: 14, left: 8, bottom: 0 }}>
+            <defs>
+              <linearGradient id="facturacionArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={COLOR_LINEA} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={COLOR_LINEA} stopOpacity={0.015} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 5" vertical={false} />
             <XAxis
               dataKey="mes"
-              className="text-xs"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
+              tickMargin={9}
+              minTickGap={18}
+              tick={{ fill: "#64748B", fontSize: 10 }}
             />
             <YAxis
-              className="text-xs"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+              width={78}
               axisLine={false}
               tickLine={false}
-              width={72}
-              tickFormatter={(value) => {
-                const amount = Number(value)
-                if (amount >= 1_000_000) return `S/ ${(amount / 1_000_000).toFixed(1)} M`
-                if (amount >= 1_000) return `S/ ${(amount / 1_000).toFixed(0)} mil`
-                return `S/ ${amount.toFixed(0)}`
-              }}
+              tickMargin={6}
+              tick={{ fill: "#64748B", fontSize: 10 }}
+              tickFormatter={formatearEje}
+              domain={[0, "auto"]}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              wrapperStyle={{ paddingTop: "8px" }}
-              formatter={(value) => (value === "facturado" ? "Facturado" : "Año anterior")}
-            />
-            <SeriesComponent
-              type="monotone"
-              dataKey="facturado"
-              name="Facturado"
-              stroke={COLORES.facturado}
-              fill={COLORES.facturado}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6 }}
-            />
+            {tipo === "lineas" ? (
+              <Area
+                type="monotone"
+                dataKey="facturado"
+                name="Facturado"
+                stroke={COLOR_LINEA}
+                strokeWidth={3}
+                fill="url(#facturacionArea)"
+                dot={false}
+                activeDot={{ r: 6, fill: "#FFFFFF", stroke: COLOR_LINEA, strokeWidth: 3 }}
+              />
+            ) : (
+              <Area
+                type="linear"
+                dataKey="facturado"
+                name="Facturado"
+                stroke={COLOR_LINEA}
+                strokeWidth={2}
+                fill="url(#facturacionArea)"
+              />
+            )}
             {hasComparativa && (
-              <SeriesComponent
+              <Line
                 type="monotone"
                 dataKey="comparativa"
-                name="Año anterior"
-                stroke={COLORES.comparativa}
-                fill={COLORES.comparativa}
+                name="comparativa"
+                stroke={COLOR_COMPARATIVA}
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
-                activeDot={{ r: 6 }}
-                opacity={0.7}
+                activeDot={{ r: 4 }}
               />
             )}
-          </ChartComponent>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
