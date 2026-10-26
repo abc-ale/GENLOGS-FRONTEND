@@ -1,330 +1,107 @@
-// src/features/cotizaciones/components/CotizacionDetalleForm.tsx
-// ✅ VERSION SIN ANY - Compatible con ESLint strict
-
-import React, { useCallback } from 'react';
-import { useFormContext, useFieldArray, Controller } from 'react-hook-form';
+import React, { useCallback, useState } from 'react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
+import { listarServicios } from '@/api/serviciosApi';
+import { obtenerProductoPorCodigo } from '@/api/productosApi';
+import type { Producto } from '@/types/producto.types';
+import { useProductos } from '@/hooks/useProductos';
 import type { CrearCotizacionFormData } from '@/lib/validators/cotizacion.schema';
 import { formatearMoneda, calcularSubtotal, calcularTotalConMargen } from '@/lib/formatters/codigoCotizacion';
-import { Trash2, Plus } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 
-interface CotizacionDetalleFormProps {
-  moneda: string;
-}
+interface Props { moneda: string }
+type TipoItem = 'producto' | 'servicio';
 
-export const CotizacionDetalleForm: React.FC<CotizacionDetalleFormProps> = ({
-  moneda,
-}) => {
-  const { control, watch, formState: { errors } } = useFormContext<CrearCotizacionFormData>();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'detalles',
-  });
-
+export const CotizacionDetalleForm: React.FC<Props> = ({ moneda }) => {
+  const { control, watch, setValue, formState: { errors } } = useFormContext<CrearCotizacionFormData>();
+  const { fields, append, remove } = useFieldArray({ control, name: 'detalles' });
   const detalles = watch('detalles');
-
-  const agregarDetalle = useCallback(() => {
-    append({
-      cantidad: 1,
-      precioUnitario: 0,
-      margenPorcentaje: 0,
-      subtotal: 0,
-    });
-  }, [append]);
-
-  const calcularTotales = useCallback(() => {
-    let subtotalGeneral = 0;
-    let totalConMargen = 0;
-
-    detalles?.forEach((detalle) => {
-      if (detalle) {
-        const sub = calcularSubtotal(detalle.cantidad, detalle.precioUnitario);
-        const total = calcularTotalConMargen(sub, detalle.margenPorcentaje);
-        subtotalGeneral += sub;
-        totalConMargen += total;
-      }
-    });
-
-    return { subtotalGeneral, totalConMargen, igv: subtotalGeneral * 0.18 };
-  }, [detalles]);
-
-  const totales = calcularTotales();
+  const agregarDetalle = useCallback(() => append({ cantidad: 1, precioUnitario: 0, margenPorcentaje: 0, subtotal: 0 }), [append]);
+  const subtotalGeneral = (detalles ?? []).reduce((sum, item) => sum + calcularSubtotal(item.cantidad || 0, item.precioUnitario || 0), 0);
+  const igv = subtotalGeneral * 0.18;
+  const sobreStock = (detalles ?? []).some((item) => item.idProducto && item.stockDisponible !== undefined && item.cantidad > item.stockDisponible);
 
   return (
-    <div className="space-y-6 bg-card p-6 rounded-lg shadow-sm border border-border">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">
-            Detalles de Cotización
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Agrega productos o servicios a la cotización
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={agregarDetalle}
-          className="inline-flex items-center px-4 py-2 bg-success text-white rounded-lg hover:bg-success/90 transition font-medium"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Agregar Línea
-        </button>
-      </div>
-
-      {errors.detalles && (
-        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-          <p className="text-sm text-destructive">
-            {typeof errors.detalles.message === 'string'
-              ? errors.detalles.message
-              : 'Error en los detalles de cotización'}
-          </p>
+    <section className="space-y-6 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div><h2 className="text-xl font-semibold text-foreground">Productos y servicios</h2><p className="mt-1 text-sm text-muted-foreground">Busca en el catálogo y revisa el stock antes de agregar.</p></div>
+        <button type="button" onClick={agregarDetalle} className="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 font-medium text-white transition hover:bg-accent/90"><Plus className="mr-2 h-4 w-4"/>Agregar ítem</button>
+      </header>
+      {errors.detalles?.message && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{errors.detalles.message}</p>}
+      {sobreStock && <p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm font-medium text-amber-800">La cantidad solicitada supera el stock disponible. Ajusta la cantidad para continuar.</p>}
+      {fields.length === 0 ? <div className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">Aún no agregaste productos o servicios.</div> : (
+        <div className="space-y-4">
+          {fields.map((field, index) => (
+            <DetalleRow key={field.id} index={index} moneda={moneda} onRemove={() => remove(index)} onSelect={(item) => {
+              setValue(`detalles.${index}.idProducto`, item.tipo === 'producto' ? item.id : undefined, { shouldValidate: true });
+              setValue(`detalles.${index}.idServicio`, item.tipo === 'servicio' ? item.id : undefined, { shouldValidate: true });
+              setValue(`detalles.${index}.idUnidadMedida`, item.unidadId, { shouldValidate: true });
+              setValue(`detalles.${index}.producto`, item.tipo === 'producto' ? item.nombre : undefined);
+              setValue(`detalles.${index}.servicio`, item.tipo === 'servicio' ? item.nombre : undefined);
+              setValue(`detalles.${index}.stockDisponible`, item.tipo === 'producto' ? item.stock : undefined, { shouldValidate: true });
+              setValue(`detalles.${index}.precioUnitario`, item.precio, { shouldValidate: true });
+              setValue(`detalles.${index}.descripcion`, item.nombre);
+            }} />
+          ))}
         </div>
       )}
+      {fields.length > 0 && <div className="flex justify-end border-t border-border pt-5"><div className="w-full space-y-3 sm:w-80">
+        <div className="flex justify-between"><span>Subtotal</span><strong>{formatearMoneda(subtotalGeneral, moneda)}</strong></div>
+        <div className="flex justify-between"><span>IGV (18%)</span><strong>{formatearMoneda(igv, moneda)}</strong></div>
+        <div className="flex justify-between rounded-xl bg-muted p-3 text-lg"><strong>Total</strong><strong className="text-accent">{formatearMoneda(subtotalGeneral + igv, moneda)}</strong></div>
+      </div></div>}
+    </section>
+  );
+};
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b-2 border-border bg-muted">
-              <th className="px-4 py-3 text-left font-semibold text-foreground">
-                Producto/Servicio
-              </th>
-              <th className="px-4 py-3 text-center font-semibold text-foreground">
-                Cantidad
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-foreground">
-                Precio Unit.
-              </th>
-              <th className="px-4 py-3 text-center font-semibold text-foreground">
-                Margen %
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-foreground">
-                Subtotal
-              </th>
-              <th className="px-4 py-3 text-center font-semibold text-foreground"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {fields.map((field, index) => (
-              <DetalleRow
-                key={field.id}
-                index={index}
-                moneda={moneda}
-                onRemove={() => remove(index)}
-                control={control}
-                errors={errors}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+interface ItemSeleccionado { tipo: TipoItem; id: number; nombre: string; unidadId: number; unidad: string; stock?: number; precio: number }
+interface RowProps { index: number; moneda: string; onRemove: () => void; onSelect: (item: ItemSeleccionado) => void }
+const DetalleRow: React.FC<RowProps> = ({ index, moneda, onRemove, onSelect }) => {
+  const { register, watch, setValue } = useFormContext<CrearCotizacionFormData>();
+  const [tipo, setTipo] = useState<TipoItem>('producto');
+  const [busqueda, setBusqueda] = useState('');
+  const [abierto, setAbierto] = useState(false);
+  const [seleccion, setSeleccion] = useState<ItemSeleccionado | null>(null);
+  const detalle = watch(`detalles.${index}`);
+  const query = busqueda.trim();
+  const { data: productosPage, isFetching: buscandoNombre } = useProductos({ nombre: query, page: 0, size: 8 });
+  const { data: productoPorCodigo, isFetching: buscandoCodigo } = useQuery({ queryKey: ['producto-codigo', query], queryFn: () => obtenerProductoPorCodigo(query).catch(() => null), enabled: tipo === 'producto' && query.length >= 2, staleTime: 30_000 });
+  const { data: servicios = [], isFetching: cargandoServicios } = useQuery({ queryKey: ['servicios', 'cotizacion', query], queryFn: () => listarServicios({ soloActivos: true }), enabled: tipo === 'servicio' && query.length >= 2, staleTime: 30_000 });
+  const productosEncontrados: Producto[] = [...(productoPorCodigo ? [productoPorCodigo] : []), ...(productosPage?.content ?? [])];
+  const productosUnicos = productosEncontrados.filter((producto, index, lista) => lista.findIndex((item) => item.idProducto === producto.idProducto) === index);
+  const opciones: ItemSeleccionado[] = tipo === 'producto'
+    ? productosUnicos.filter((p) => `${p.nombreProducto} ${p.codigoProducto}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())).slice(0, 8).map((p) => ({ tipo, id: p.idProducto, nombre: p.nombreProducto, unidadId: p.idUnidadMedida, unidad: p.unidadMedida ?? 'Unidad', stock: Number(p.stock) || 0, precio: 0 }))
+    : servicios.filter((s) => `${s.nombreServicio} ${s.codigoServicio}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())).slice(0, 8).map((s) => ({ tipo, id: s.idServicio, nombre: s.nombreServicio, unidadId: s.unidadMedida.idUnidadMedida, unidad: s.unidadMedida.nombreUnidad, precio: 0 }));
+  const subtotal = calcularSubtotal(detalle?.cantidad ?? 0, detalle?.precioUnitario ?? 0);
+  const stockError = Boolean(detalle?.idProducto && detalle.stockDisponible !== undefined && detalle.cantidad > detalle.stockDisponible);
+  const loading = tipo === 'producto' ? buscandoNombre || buscandoCodigo : cargandoServicios;
 
-      {fields.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground mb-4">
-            No hay detalles. Haz clic en "Agregar Línea" para comenzar.
-          </p>
-          <button
-            type="button"
-            onClick={agregarDetalle}
-            className="inline-flex items-center px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Agregar Primera Línea
-          </button>
-        </div>
-      )}
-
-      {/* Resumen de totales */}
-      {fields.length > 0 && (
-        <div className="mt-8 pt-6 border-t-2 border-border space-y-3">
-          <div className="flex justify-end">
-            <div className="w-full sm:w-80 space-y-3">
-              <div className="flex justify-between text-foreground">
-                <span className="font-medium">Subtotal:</span>
-                <span className="font-semibold">
-                  {formatearMoneda(totales.subtotalGeneral, moneda)}
-                </span>
-              </div>
-              <div className="flex justify-between text-foreground">
-                <span className="font-medium">IGV (18%):</span>
-                <span className="font-semibold">
-                  {formatearMoneda(totales.igv, moneda)}
-                </span>
-              </div>
-              <div className="flex justify-between text-lg text-foreground bg-muted p-3 rounded-lg">
-                <span className="font-bold">Total:</span>
-                <span className="font-bold">
-                  {formatearMoneda(totales.subtotalGeneral + totales.igv, moneda)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+  return <article className="rounded-xl border border-border bg-background p-4 shadow-sm">
+    <div className="mb-3 flex items-start justify-between gap-3"><div className="flex flex-wrap gap-2">
+      {(['producto', 'servicio'] as const).map((opcion) => <button key={opcion} type="button" onClick={() => { setTipo(opcion); setBusqueda(''); setSeleccion(null); setValue(`detalles.${index}.idProducto`, undefined); setValue(`detalles.${index}.idServicio`, undefined); setValue(`detalles.${index}.stockDisponible`, undefined); }} className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${tipo === opcion ? 'bg-accent text-white' : 'bg-muted text-muted-foreground'}`}>{opcion}</button>)}
+    </div><button type="button" onClick={onRemove} aria-label="Eliminar ítem" className="rounded-lg p-2 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4"/></button></div>
+    <div className="relative">
+      <label className="mb-1.5 block text-sm font-medium">Buscar {tipo}</label>
+      <div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><input value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setAbierto(true); setSeleccion(null); }} onFocus={() => setAbierto(true)} onBlur={() => window.setTimeout(() => setAbierto(false), 150)} placeholder={tipo === 'producto' ? 'Escribe el nombre del producto' : 'Código o nombre del servicio'} className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-3 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"/>
+      {abierto && busqueda.trim().length >= 2 && <div className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-border bg-card shadow-xl">
+        {loading ? <p className="p-3 text-sm text-muted-foreground">Buscando en el catálogo…</p> : opciones.length ? opciones.map((item) => <button type="button" key={`${item.tipo}-${item.id}`} onMouseDown={(e) => e.preventDefault()} onClick={() => { setSeleccion(item); setBusqueda(item.nombre); setAbierto(false); onSelect(item); }} className="flex w-full items-center justify-between gap-3 border-b border-border px-3 py-3 text-left last:border-0 hover:bg-muted"><span><span className="block font-medium">{item.nombre}</span><span className="text-xs text-muted-foreground">{item.unidad}{item.tipo === 'producto' ? ` · Stock: ${item.stock}` : ''}</span></span><span className="shrink-0 text-xs font-semibold text-accent">{item.tipo === 'producto' ? `Stock ${item.stock}` : 'Servicio'}</span></button>) : <p className="p-3 text-sm text-muted-foreground">No se encontraron coincidencias.</p>}
+      </div>}</div>
+      {seleccion && <p className={`mt-1.5 text-xs ${seleccion.tipo === 'producto' && (seleccion.stock ?? 0) <= 0 ? 'text-destructive' : 'text-muted-foreground'}`}>{seleccion.tipo === 'producto' ? `Disponible: ${seleccion.stock} ${seleccion.unidad}` : `Unidad: ${seleccion.unidad}`}</p>}
+      {!seleccion && detalle?.idProducto && <p className="mt-1.5 text-xs text-muted-foreground">Stock disponible: {detalle.stockDisponible ?? 0}</p>}
     </div>
-  );
+    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <label className="text-sm">Cantidad<input {...register(`detalles.${index}.cantidad`, { valueAsNumber: true })} type="number" min="1" step="1" className={`mt-1 w-full rounded-lg border bg-background px-3 py-2 ${stockError ? 'border-destructive' : 'border-border'}`}/>{stockError && <span role="alert" className="mt-1 block text-xs text-destructive">Supera el stock ({detalle.stockDisponible}).</span>}</label>
+      <label className="text-sm">Precio unit.<input {...register(`detalles.${index}.precioUnitario`, { valueAsNumber: true })} type="number" min="0" step="0.01" className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"/></label>
+      <label className="text-sm">Margen %<input {...register(`detalles.${index}.margenPorcentaje`, { valueAsNumber: true })} type="number" min="0" max="100" step="0.1" className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"/></label>
+      <div className="text-sm">Importe<div className="mt-1 rounded-lg bg-muted px-3 py-2 font-semibold">{formatearMoneda(calcularTotalConMargen(subtotal, detalle?.margenPorcentaje ?? 0), moneda)}</div></div>
+    </div>
+    <input type="hidden" {...register(`detalles.${index}.idProducto`)} /><input type="hidden" {...register(`detalles.${index}.idServicio`)} /><input type="hidden" {...register(`detalles.${index}.idUnidadMedida`)} />
+  </article>;
 };
 
-interface DetalleRowProps {
-  index: number;
-  moneda: string;
-  onRemove: () => void;
-  control: ReturnType<typeof useFormContext<CrearCotizacionFormData>>['control'];
-  errors: ReturnType<typeof useFormContext<CrearCotizacionFormData>>['formState']['errors'];
-}
 
-const DetalleRow: React.FC<DetalleRowProps> = ({
-  index,
-  moneda,
-  onRemove,
-  control,
-  errors,
-}) => {
-  const { watch: fieldWatch } = useFormContext<CrearCotizacionFormData>();
-  const detalles = fieldWatch('detalles');
-  const detalle = detalles?.[index];
 
-  const subtotal = detalle
-    ? calcularSubtotal(detalle.cantidad, detalle.precioUnitario)
-    : 0;
-  const totalConMargen = detalle
-    ? calcularTotalConMargen(subtotal, detalle.margenPorcentaje)
-    : 0;
 
-  return (
-    <tr className="border-b border-border hover:bg-muted transition">
-      {/* Producto/Servicio */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.producto`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <input
-                {...field}
-                value={field.value || ''}
-                type="text"
-                placeholder="Nombre del producto o servicio"
-                className={`w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-accent ${
-                  errors?.detalles?.[index]?.producto
-                    ? 'border-destructive'
-                    : 'border-border'
-                }`}
-              />
-              {errors?.detalles?.[index]?.producto && (
-                <p className="text-xs text-destructive mt-1">
-                  {errors.detalles[index]?.producto?.message}
-                </p>
-              )}
-            </div>
-          )}
-        />
-      </td>
 
-      {/* Cantidad */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.cantidad`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <input
-                {...field}
-                type="number"
-                value={field.value || ''}
-                onChange={(e) => field.onChange(Number(e.target.value))}
-                min="1"
-                step="1"
-                className={`w-full px-2 py-1 border rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-accent ${
-                  errors?.detalles?.[index]?.cantidad
-                    ? 'border-destructive'
-                    : 'border-border'
-                }`}
-              />
-            </div>
-          )}
-        />
-      </td>
 
-      {/* Precio Unitario */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.precioUnitario`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <input
-                {...field}
-                type="number"
-                value={field.value || ''}
-                onChange={(e) => field.onChange(Number(e.target.value))}
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                className={`w-full px-2 py-1 border rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-accent ${
-                  errors?.detalles?.[index]?.precioUnitario
-                    ? 'border-destructive'
-                    : 'border-border'
-                }`}
-              />
-            </div>
-          )}
-        />
-      </td>
 
-      {/* Margen % */}
-      <td className="px-4 py-3">
-        <Controller
-          name={`detalles.${index}.margenPorcentaje`}
-          control={control}
-          render={({ field }) => (
-            <div>
-              <div className="flex items-center">
-                <input
-                  {...field}
-                  type="number"
-                  value={field.value || ''}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  className={`w-full px-2 py-1 border rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-accent ${
-                    errors?.detalles?.[index]?.margenPorcentaje
-                      ? 'border-destructive'
-                      : 'border-border'
-                  }`}
-                />
-                <span className="ml-1 text-muted-foreground">%</span>
-              </div>
-            </div>
-          )}
-        />
-      </td>
-
-      {/* Subtotal */}
-      <td className="px-4 py-3 text-right font-semibold text-foreground">
-        <div className="space-y-1">
-          <div className="text-sm">
-            {formatearMoneda(subtotal, moneda)}
-          </div>
-          {detalle?.margenPorcentaje && detalle.margenPorcentaje > 0 && (
-            <div className="text-xs text-success font-medium">
-              +{formatearMoneda(totalConMargen - subtotal, moneda)} margen
-            </div>
-          )}
-        </div>
-      </td>
-
-      {/* Eliminar */}
-      <td className="px-4 py-3 text-center">
-        <button
-          type="button"
-          onClick={onRemove}
-          className="inline-flex p-2 text-destructive hover:bg-destructive/10 rounded-lg transition"
-          title="Eliminar esta línea"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </td>
-    </tr>
-  );
-};

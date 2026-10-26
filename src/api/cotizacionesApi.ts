@@ -186,6 +186,8 @@ export const cotizacionesApi = {
   async descargarCotizacionPDF(id: number): Promise<Blob> {
     const response = await axiosClient.get(`/cotizaciones/${id}/descargar-pdf`, {
       responseType: "blob",
+      timeout: 120_000,
+      headers: { Accept: "application/pdf" },
     })
     return response.data
   },
@@ -205,3 +207,4 @@ export const cotizacionesApi = {
     return response.data
   },
 }
+

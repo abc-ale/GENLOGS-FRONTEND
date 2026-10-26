@@ -103,13 +103,16 @@ export function useDescargarPDF(
       const link = document.createElement('a');
       link.href = url;
       link.download = nombreArchivo || `cotizacion-${cotizacionId}.pdf`;
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // No revocar el Blob antes de que el navegador comience a guardarlo.
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
     },
     onError: (error) => {
       console.error('Error al descargar PDF:', error);
+      window.alert('No se pudo descargar el PDF. Verifica tu conexión e inténtalo nuevamente.');
     },
   });
 }
@@ -136,3 +139,4 @@ export function useDuplicarCotizacion(): UseMutationResult<
     },
   });
 }
+

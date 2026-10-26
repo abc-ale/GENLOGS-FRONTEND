@@ -47,6 +47,7 @@ export interface Producto extends AuditFields {
   idMarca?: number
   marcaNombre?: string
   idUnidadMedida: number
+  unidadMedida?: string
   codigoProducto: string
   nombreProducto: string
   procedencia?: string
@@ -100,3 +101,4 @@ export interface MediosNuevosProducto {
   imagenes: ImagenNueva[]
   documentos: DocumentoNuevo[]
 }
+
