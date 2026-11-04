@@ -1,10 +1,15 @@
 import { axiosClient } from "./axiosClient"
-import type { ReporteRequest } from "@/types/reporte.types"
+import type { ReporteRequest, ReporteVistaPrevia } from "@/types/reporte.types"
 
 export async function generarReporte(request: ReporteRequest): Promise<Blob> {
   const { data } = await axiosClient.post("/reportes/generar", request, {
     responseType: "blob",
   })
+  return data
+}
+
+export async function obtenerVistaPrevia(request: ReporteRequest): Promise<ReporteVistaPrevia> {
+  const { data } = await axiosClient.post<ReporteVistaPrevia>("/reportes/vista-previa", request)
   return data
 }
 

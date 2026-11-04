@@ -6,7 +6,10 @@ import type { ReporteRequest, TipoReporte, FormatoReporte } from "@/types/report
 
 interface ReporteFiltroFormProps {
   onSubmit: (valores: ReporteRequest) => void
+  /** Si se pasa, aparece el botón "Vista previa" (valida el formulario y no descarga nada). */
+  onPreview?: (valores: ReporteRequest) => void
   enviando?: boolean
+  cargandoVistaPrevia?: boolean
 }
 
 const OPCIONES_TIPO: { value: TipoReporte; label: string }[] = [
@@ -29,7 +32,7 @@ const RANGOS_RAPIDOS: { label: string; calcular: () => RangoFechas }[] = [
   { label: "Año actual", calcular: () => anioActual() },
 ]
 
-export function ReporteFiltroForm({ onSubmit, enviando }: ReporteFiltroFormProps) {
+export function ReporteFiltroForm({ onSubmit, onPreview, enviando, cargandoVistaPrevia }: ReporteFiltroFormProps) {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReporteRequest>({
     resolver: zodResolver(reporteFiltroSchema),
     defaultValues: {
@@ -108,13 +111,25 @@ export function ReporteFiltroForm({ onSubmit, enviando }: ReporteFiltroFormProps
         {errors.formato && <p className="text-sm text-destructive">{errors.formato.message}</p>}
       </div>
 
-      <button
-        type="submit"
-        disabled={enviando}
-        className="mt-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-      >
-        {enviando ? "Generando..." : "Generar reporte"}
-      </button>
+      <div className="mt-2 flex flex-col gap-2">
+        {onPreview && (
+          <button
+            type="button"
+            onClick={handleSubmit(onPreview)}
+            disabled={cargandoVistaPrevia || enviando}
+            className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/5 disabled:opacity-50"
+          >
+            {cargandoVistaPrevia ? "Cargando vista previa..." : "Vista previa"}
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={enviando}
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+        >
+          {enviando ? "Generando..." : "Generar reporte"}
+        </button>
+      </div>
     </form>
   )
 }

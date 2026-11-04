@@ -13,3 +13,13 @@ export interface ReporteRequest {
   fechaFin: string
   formato: FormatoReporte
 }
+
+export interface ReporteVistaPrevia {
+  tipoReporte: TipoReporte
+  encabezados: string[]
+  filas: string[][]
+  /** Total de filas que tendrá el reporte completo. */
+  totalFilas: number
+  /** true si solo se devuelven las primeras filas. */
+  truncado: boolean
+}
