@@ -139,7 +139,7 @@ export const CotizacionesListPage: React.FC = () => {
               <select id="orden-cotizaciones" value={filtros.sortDir || 'DESC'} onChange={(e) => handleFilterChange({ sortDir: e.target.value as 'ASC' | 'DESC' })} className="h-11 min-w-52 rounded-lg border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <option value="DESC">Más recientes primero</option><option value="ASC">Más antiguos primero</option>
               </select>
-              {(filtros.estadoCotizacion || filtros.moneda) && <button type="button" onClick={() => setFiltros((prev) => ({ ...prev, estadoCotizacion: undefined, moneda: undefined, page: 0 }))} className="h-11 rounded-lg px-3 text-sm font-medium text-accent hover:bg-accent/10">Limpiar filtros</button>}
+              {(filtros.estadoCotizacion || filtros.moneda) && <button type="button" onClick={() => setFiltros((prev) => ({ ...prev, estadoCotizacion: undefined, moneda: undefined, page: 0 }))} className="h-11 rounded-lg px-3 text-sm font-medium text-accent hover:bg-accent/10">Restablecer</button>}
             </div>
           </div>
         </div>
@@ -288,5 +288,3 @@ export const CotizacionesListPage: React.FC = () => {
     </div>
   );
 };
-
-
