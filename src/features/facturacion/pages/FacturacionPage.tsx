@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Download, Filter, Loader2, Receipt } from 'lucide-react'
+import { Download, Loader2, Receipt } from 'lucide-react'
 import { useCambiarEstadoFactura, useFacturas } from '../hooks/useFacturacion'
 import { EstadoEditable, type OpcionEstado } from '@/components/ui/EstadoEditable'
 import { facturacionApi } from '@/api/facturacionApi'
@@ -84,7 +84,6 @@ const OPCIONES_ESTADO: OpcionEstado[] = [
 
 export function FacturacionPage() {
   const [pagina, setPagina] = useState(0)
-  const [filtrosAbiertos, setFiltrosAbiertos] = useState(true)
   const [estadoCodigo, setEstadoCodigo] = useState<EstadoFacturacion | ''>('')
   const [descargandoId, setDescargandoId] = useState<number | null>(null)
   const TAMANO_PAGINA = 10
@@ -115,17 +114,20 @@ export function FacturacionPage() {
         <p className="text-sm text-muted-foreground">Comprobantes, tipos y estados de emisión.</p>
       </header>
 
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-        <button type="button" onClick={() => setFiltrosAbiertos((abierto) => !abierto)} aria-expanded={filtrosAbiertos} className="flex w-full items-center gap-2 text-left font-medium text-foreground">
-          <Filter className="h-4 w-4" aria-hidden="true" />Filtros {estadoCodigo && <span className="text-xs text-muted-foreground">(1)</span>}
-        </button>
-        {filtrosAbiertos && <div className="mt-4 max-w-sm border-t border-border pt-4">
-          <label htmlFor="filtro-estado-factura" className="mb-2 block text-sm font-medium text-foreground">Estado</label>
-          <select id="filtro-estado-factura" value={estadoCodigo} onChange={(e) => { setEstadoCodigo(e.target.value as EstadoFacturacion | ''); setPagina(0) }} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <option value="">Todos los estados</option>
-            <option value={EstadoFacturacion.EMITIDA}>Emitida</option><option value={EstadoFacturacion.PARCIAL}>Pago parcial</option><option value={EstadoFacturacion.PAGADA}>Pagada</option><option value={EstadoFacturacion.VENCIDA}>Vencida</option><option value={EstadoFacturacion.ANULADA}>Anulada</option>
-          </select>
-        </div>}
+      <div role="group" aria-label="Filtrar facturas por estado" className="flex gap-2 overflow-x-auto pb-1">
+        {[
+          { value: '', label: 'Todas' },
+          { value: EstadoFacturacion.EMITIDA, label: 'Emitidas' },
+          { value: EstadoFacturacion.PARCIAL, label: 'Pago parcial' },
+          { value: EstadoFacturacion.PAGADA, label: 'Pagadas' },
+          { value: EstadoFacturacion.VENCIDA, label: 'Vencidas' },
+          { value: EstadoFacturacion.ANULADA, label: 'Anuladas' },
+        ].map((opcion) => {
+          const activo = estadoCodigo === opcion.value
+          return <button key={opcion.value || 'todas'} type="button" aria-pressed={activo} onClick={() => { setEstadoCodigo(opcion.value as EstadoFacturacion | ''); setPagina(0) }} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${activo ? 'border-[#203f68] bg-[#203f68] text-white shadow-sm' : 'border-border bg-card text-foreground hover:border-[#203f68]/40 hover:bg-muted'}`}>
+            {opcion.label}{!opcion.value && !estadoCodigo && data ? ` ${data.totalElements}` : ''}
+          </button>
+        })}
       </div>
       {isError && <ErrorBanner message="No se pudieron cargar los comprobantes." onRetry={() => refetch()} />}
 

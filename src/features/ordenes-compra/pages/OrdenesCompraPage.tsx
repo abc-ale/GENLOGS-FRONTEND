@@ -1,28 +1,18 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Filter, ShoppingCart } from 'lucide-react'
-import { useCambiarEstadoOrdenCompra, useOrdenesCompra } from '../hooks/useOrdenesCompra'
-import { EstadoEditable, type OpcionEstado } from '@/components/ui/EstadoEditable'
+import { ShoppingCart } from 'lucide-react'
+import { useOrdenesCompra } from '../hooks/useOrdenesCompra'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { EstadoOrdenCompra } from '@/types/ordenCompra.types'
 
-const OPCIONES_ESTADO: OpcionEstado[] = [
-  { value: EstadoOrdenCompra.RECIBIDA, label: 'Recibida' },
-  { value: EstadoOrdenCompra.EN_ATENCION, label: 'En atención' },
-  { value: EstadoOrdenCompra.ATENDIDA, label: 'Atendida' },
-  { value: EstadoOrdenCompra.ANULADA, label: 'Anulada' },
-]
-
 export function OrdenesCompraPage() {
   const [paginaActual, setPaginaActual] = useState(0)
-  const [filtrosAbiertos, setFiltrosAbiertos] = useState(true)
   const [estadoCodigo, setEstadoCodigo] = useState<EstadoOrdenCompra | ''>('')
   const tamanioPagina = 10
   const { data, isLoading, isError, refetch } = useOrdenesCompra({ estadoCodigo: estadoCodigo || undefined, page: paginaActual, size: tamanioPagina })
   const ordenes = data?.content ?? []
-  const cambiarEstado = useCambiarEstadoOrdenCompra()
 
   return (
     <section className="space-y-6">
@@ -33,20 +23,19 @@ export function OrdenesCompraPage() {
         </p>
       </header>
 
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-        <button type="button" onClick={() => setFiltrosAbiertos(abierto => !abierto)} aria-expanded={filtrosAbiertos} className="flex w-full items-center gap-2 text-left font-medium text-foreground">
-          <Filter className="h-4 w-4" aria-hidden="true" />Filtros {estadoCodigo && <span className="text-xs text-muted-foreground">(1)</span>}
-        </button>
-        {filtrosAbiertos && <div className="mt-4 max-w-sm border-t border-border pt-4">
-          <label htmlFor="filtro-estado-orden" className="mb-2 block text-sm font-medium text-foreground">Estado</label>
-          <select id="filtro-estado-orden" value={estadoCodigo} onChange={e => { setEstadoCodigo(e.target.value as EstadoOrdenCompra | ''); setPaginaActual(0) }} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <option value="">Todos los estados</option>
-            <option value={EstadoOrdenCompra.RECIBIDA}>Recibida</option>
-            <option value={EstadoOrdenCompra.EN_ATENCION}>En atención</option>
-            <option value={EstadoOrdenCompra.ATENDIDA}>Atendida</option>
-            <option value={EstadoOrdenCompra.ANULADA}>Anulada</option>
-          </select>
-        </div>}
+      <div role="group" aria-label="Filtrar órdenes por estado" className="flex gap-2 overflow-x-auto pb-1">
+        {[
+          { value: '', label: 'Todas' },
+          { value: EstadoOrdenCompra.RECIBIDA, label: 'Recibidas' },
+          { value: EstadoOrdenCompra.EN_ATENCION, label: 'En atención' },
+          { value: EstadoOrdenCompra.ATENDIDA, label: 'Atendidas' },
+          { value: EstadoOrdenCompra.ANULADA, label: 'Anuladas' },
+        ].map((opcion) => {
+          const activo = estadoCodigo === opcion.value
+          return <button key={opcion.value || 'todas'} type="button" aria-pressed={activo} onClick={() => { setEstadoCodigo(opcion.value as EstadoOrdenCompra | ''); setPaginaActual(0) }} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${activo ? 'border-[#203f68] bg-[#203f68] text-white shadow-sm' : 'border-border bg-card text-foreground hover:border-[#203f68]/40 hover:bg-muted'}`}>
+            {opcion.label}{!opcion.value && !estadoCodigo && data ? ` ${data.totalElements}` : ''}
+          </button>
+        })}
       </div>
       {isError && (
         <ErrorBanner message="No se pudieron cargar las órdenes de compra." onRetry={() => refetch()} />
@@ -90,14 +79,7 @@ export function OrdenesCompraPage() {
                   </Link>
                 </td>
                 <td className="p-3">{orden.fechaRecepcion}</td>
-                <td className="p-3">
-                  <EstadoEditable
-                    valor={orden.estadoCodigo}
-                    opciones={OPCIONES_ESTADO}
-                    descripcionItem={`la orden ${orden.numeroOrdenCompra}`}
-                    onCambiar={(nuevo) => cambiarEstado.mutateAsync({ id: orden.idOrdenCompra, estado: nuevo as EstadoOrdenCompra })}
-                  />
-                </td>
+                <td className="p-3">{orden.estadoCodigo ?? orden.idEstadoOrdenCompra}</td>
               </tr>
             ))}
           </tbody>

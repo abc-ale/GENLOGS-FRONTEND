@@ -20,9 +20,6 @@ import {
 import {
   Plus,
   Search,
-  Filter,
-  ChevronDown,
-  X,
   Loader2,
   AlertCircle,
   Copy,
@@ -39,7 +36,6 @@ export const CotizacionesListPage: React.FC = () => {
     sortDir: 'DESC',
   });
 
-  const [showFilters, setShowFilters] = useState(true);
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
   const { data, isLoading, error } = useCotizaciones(filtros);
   const { mutate: duplicarCotizacion, isPending: isDuplicarPending } =
@@ -114,97 +110,38 @@ export const CotizacionesListPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-card rounded-lg shadow-sm border border-border p-4 mb-6">
-          <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => setShowFilters(!showFilters)}
-              aria-expanded={showFilters}
-              className="flex items-center text-foreground hover:text-foreground font-medium"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros {(filtros.estadoCotizacion || filtros.moneda) && `(${[filtros.estadoCotizacion, filtros.moneda].filter(Boolean).length})`}
-              <ChevronDown className={`ml-2 w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} aria-hidden="true" />
-            </button>
-            {(filtros.estadoCotizacion || filtros.moneda) && (
-              <button
-                type="button"
-                onClick={() => setFiltros((prev) => ({ ...prev, estadoCotizacion: undefined, moneda: undefined, page: 0 }))}
-                className="inline-flex items-center gap-1 text-sm text-accent hover:underline"
-              >
-                <X className="w-4 h-4" aria-hidden="true" />
-                Limpiar filtros
+        {/* Filtros por estado y opciones adicionales */}
+        <div className="mb-6 space-y-4">
+          <div role="group" aria-label="Filtrar cotizaciones por estado" className="flex gap-2 overflow-x-auto pb-1">
+            {[
+              { value: '', label: 'Todas' },
+              { value: EstadoCotizacion.BORRADOR, label: 'Borrador' },
+              { value: EstadoCotizacion.ENVIADA, label: 'Enviadas' },
+              { value: EstadoCotizacion.EN_NEGOCIACION, label: 'En negociación' },
+              { value: EstadoCotizacion.APROBADA, label: 'Aprobadas' },
+              { value: EstadoCotizacion.RECHAZADA, label: 'Rechazadas' },
+              { value: EstadoCotizacion.VENCIDA, label: 'Vencidas' },
+              { value: EstadoCotizacion.ANULADA, label: 'Anuladas' },
+            ].map((opcion) => {
+              const activo = (filtros.estadoCotizacion ?? '') === opcion.value
+              return <button key={opcion.value || 'todas'} type="button" aria-pressed={activo} onClick={() => handleFilterChange({ estadoCotizacion: (opcion.value as EstadoCotizacion) || undefined })} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${activo ? 'border-[#203f68] bg-[#203f68] text-white shadow-sm' : 'border-border bg-card text-foreground hover:border-[#203f68]/40 hover:bg-muted'}`}>
+                {opcion.label}{!opcion.value && !filtros.estadoCotizacion && data ? ` ${data.totalElements}` : ''}
               </button>
-            )}
+            })}
           </div>
-
-          {showFilters && (
-            <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Estado */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Estado
-                </label>
-                <select
-                  value={filtros.estadoCotizacion || ''}
-                  onChange={(e) =>
-                    handleFilterChange({
-                      estadoCotizacion: (e.target.value as EstadoCotizacion) || undefined,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
-                >
-                  <option value="">Todos los estados</option>
-                  {Object.values(EstadoCotizacion).map((estado) => (
-                    <option key={estado} value={estado}>
-                      {mapearEstadoCotizacion(estado)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Moneda */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Moneda
-                </label>
-                <select
-                  value={filtros.moneda || ''}
-                  onChange={(e) =>
-                    handleFilterChange({ moneda: (e.target.value as Moneda) || undefined })
-                  }
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
-                >
-                  <option value="">Todas las monedas</option>
-                  {Object.values(Moneda).map((moneda) => (
-                    <option key={moneda} value={moneda}>
-                      {moneda}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Ordenar */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Ordenar por
-                </label>
-                <select
-                  value={filtros.sortDir || 'DESC'}
-                  onChange={(e) =>
-                    handleFilterChange({
-                      sortDir: (e.target.value as 'ASC' | 'DESC'),
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
-                >
-                  <option value="DESC">Más recientes</option>
-                  <option value="ASC">Más antiguos</option>
-                </select>
-              </div>
+          <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+            <div className="flex flex-wrap gap-2">
+              <label className="sr-only" htmlFor="filtro-moneda-cotizacion">Moneda</label>
+              <select id="filtro-moneda-cotizacion" value={filtros.moneda || ''} onChange={(e) => handleFilterChange({ moneda: (e.target.value as Moneda) || undefined })} className="h-11 min-w-52 rounded-lg border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <option value="">Todas las monedas</option>{Object.values(Moneda).map((moneda) => <option key={moneda} value={moneda}>{moneda}</option>)}
+              </select>
+              <label className="sr-only" htmlFor="orden-cotizaciones">Ordenar cotizaciones</label>
+              <select id="orden-cotizaciones" value={filtros.sortDir || 'DESC'} onChange={(e) => handleFilterChange({ sortDir: e.target.value as 'ASC' | 'DESC' })} className="h-11 min-w-52 rounded-lg border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <option value="DESC">Más recientes primero</option><option value="ASC">Más antiguos primero</option>
+              </select>
+              {(filtros.estadoCotizacion || filtros.moneda) && <button type="button" onClick={() => setFiltros((prev) => ({ ...prev, estadoCotizacion: undefined, moneda: undefined, page: 0 }))} className="h-11 rounded-lg px-3 text-sm font-medium text-accent hover:bg-accent/10">Limpiar filtros</button>}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Content */}
@@ -351,3 +288,5 @@ export const CotizacionesListPage: React.FC = () => {
     </div>
   );
 };
+
+
