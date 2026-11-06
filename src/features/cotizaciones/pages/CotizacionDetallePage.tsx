@@ -9,7 +9,6 @@ import { useOrdenesCompra } from '@/features/ordenes-compra/hooks/useOrdenesComp
 import { useFacturas } from '@/features/facturacion/hooks/useFacturacion';
 import { SeguimientoTimeline } from '../components/SeguimientoTimeline';
 import { AdjuntoCotizacionUploader } from '../components/AdjuntoCotizacionUploader';
-import { ConfirmacionEnvioModal } from '../components/ConfirmacionEnvioModal';
 import { PipelineBreadcrumb, type PipelineStep } from '@/components/ui/PipelineBreadcrumb';
 import { EstadoCotizacion } from '@/types/cotizacion.types';
 import {
@@ -23,7 +22,6 @@ import {
   ArrowLeft,
   Loader2,
   AlertCircle,
-  Send,
   Download,
 } from 'lucide-react';
 
@@ -49,7 +47,6 @@ export const CotizacionDetallePage: React.FC = () => {
   const facturaGenerada = facturasData?.content?.find(
     (f) => f.idOrdenCompra === ordenGenerada?.idOrdenCompra
   );
-  const [showEnvioModal, setShowEnvioModal] = useState(false);
   const [showEstadoSelector, setShowEstadoSelector] = useState(false);
 
   const handleCambiarEstado = (nuevoEstado: EstadoCotizacion) => {
@@ -206,13 +203,6 @@ export const CotizacionDetallePage: React.FC = () => {
             </div>
 
             <div className="flex gap-2">
-              <button
-                onClick={() => setShowEnvioModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-success text-white rounded-lg hover:bg-success/90 transition font-medium text-sm"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Enviar
-              </button>
               <button
                 onClick={() => descargarPDF()}
                 disabled={isDownloadingPDF}
@@ -395,14 +385,6 @@ export const CotizacionDetallePage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Envio Modal */}
-      <ConfirmacionEnvioModal
-        isOpen={showEnvioModal}
-        onClose={() => setShowEnvioModal(false)}
-        cotizacionId={cotizacion.id || 0}
-        emailPredeterminado={cotizacion.clienteEmail}
-      />
     </div>
   );
 };

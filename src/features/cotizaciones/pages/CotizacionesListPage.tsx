@@ -21,6 +21,8 @@ import {
   Plus,
   Search,
   Filter,
+  ChevronDown,
+  X,
   Loader2,
   AlertCircle,
   Copy,
@@ -37,7 +39,7 @@ export const CotizacionesListPage: React.FC = () => {
     sortDir: 'DESC',
   });
 
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
   const { data, isLoading, error } = useCotizaciones(filtros);
   const { mutate: duplicarCotizacion, isPending: isDuplicarPending } =
@@ -114,13 +116,28 @@ export const CotizacionesListPage: React.FC = () => {
 
         {/* Filters */}
         <div className="bg-card rounded-lg shadow-sm border border-border p-4 mb-6">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center text-foreground hover:text-foreground font-medium"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros {filtros.estadoCotizacion && '(1)'}
-          </button>
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              aria-expanded={showFilters}
+              className="flex items-center text-foreground hover:text-foreground font-medium"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros {(filtros.estadoCotizacion || filtros.moneda) && `(${[filtros.estadoCotizacion, filtros.moneda].filter(Boolean).length})`}
+              <ChevronDown className={`ml-2 w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+            {(filtros.estadoCotizacion || filtros.moneda) && (
+              <button
+                type="button"
+                onClick={() => setFiltros((prev) => ({ ...prev, estadoCotizacion: undefined, moneda: undefined, page: 0 }))}
+                className="inline-flex items-center gap-1 text-sm text-accent hover:underline"
+              >
+                <X className="w-4 h-4" aria-hidden="true" />
+                Limpiar filtros
+              </button>
+            )}
+          </div>
 
           {showFilters && (
             <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-4">

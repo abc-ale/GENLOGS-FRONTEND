@@ -20,13 +20,10 @@ export function useCrearOrdenCompra() {
   })
 }
 
-export function useCambiarEstadoOrdenCompra(id: number) {
+export function useCambiarEstadoOrdenCompra() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (estado: EstadoOrdenCompra) => ordenesCompraApi.cambiarEstado(id, estado),
-    onSuccess: (data) => {
-      queryClient.setQueryData(ordenesCompraKeys.detalle(id), data)
-      return queryClient.invalidateQueries({ queryKey: ordenesCompraKeys.all })
-    },
+    mutationFn: ({ id, estado }: { id: number; estado: EstadoOrdenCompra }) => ordenesCompraApi.cambiarEstado(id, estado),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ordenesCompraKeys.all }),
   })
 }

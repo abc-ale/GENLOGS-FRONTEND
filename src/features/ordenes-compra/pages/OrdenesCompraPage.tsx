@@ -1,19 +1,28 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Filter, ShoppingCart } from 'lucide-react'
-import { useOrdenesCompra } from '../hooks/useOrdenesCompra'
+import { useCambiarEstadoOrdenCompra, useOrdenesCompra } from '../hooks/useOrdenesCompra'
+import { EstadoEditable, type OpcionEstado } from '@/components/ui/EstadoEditable'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { EstadoOrdenCompra } from '@/types/ordenCompra.types'
 
+const OPCIONES_ESTADO: OpcionEstado[] = [
+  { value: EstadoOrdenCompra.RECIBIDA, label: 'Recibida' },
+  { value: EstadoOrdenCompra.EN_ATENCION, label: 'En atención' },
+  { value: EstadoOrdenCompra.ATENDIDA, label: 'Atendida' },
+  { value: EstadoOrdenCompra.ANULADA, label: 'Anulada' },
+]
+
 export function OrdenesCompraPage() {
   const [paginaActual, setPaginaActual] = useState(0)
-  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(true)
   const [estadoCodigo, setEstadoCodigo] = useState<EstadoOrdenCompra | ''>('')
   const tamanioPagina = 10
   const { data, isLoading, isError, refetch } = useOrdenesCompra({ estadoCodigo: estadoCodigo || undefined, page: paginaActual, size: tamanioPagina })
   const ordenes = data?.content ?? []
+  const cambiarEstado = useCambiarEstadoOrdenCompra()
 
   return (
     <section className="space-y-6">
@@ -81,7 +90,14 @@ export function OrdenesCompraPage() {
                   </Link>
                 </td>
                 <td className="p-3">{orden.fechaRecepcion}</td>
-                <td className="p-3">{orden.estadoCodigo ?? orden.idEstadoOrdenCompra}</td>
+                <td className="p-3">
+                  <EstadoEditable
+                    valor={orden.estadoCodigo}
+                    opciones={OPCIONES_ESTADO}
+                    descripcionItem={`la orden ${orden.numeroOrdenCompra}`}
+                    onCambiar={(nuevo) => cambiarEstado.mutateAsync({ id: orden.idOrdenCompra, estado: nuevo as EstadoOrdenCompra })}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

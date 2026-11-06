@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Download, Filter, Loader2, Receipt } from 'lucide-react'
-import { useFacturas } from '../hooks/useFacturacion'
+import { useCambiarEstadoFactura, useFacturas } from '../hooks/useFacturacion'
+import { EstadoEditable, type OpcionEstado } from '@/components/ui/EstadoEditable'
 import { facturacionApi } from '@/api/facturacionApi'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
@@ -73,14 +74,23 @@ async function generarPdfFacturacion(factura: Factura, lineas: DetalleFacturacio
   doc.save(`facturacion-${filename}.pdf`)
 }
 
+const OPCIONES_ESTADO: OpcionEstado[] = [
+  { value: EstadoFacturacion.EMITIDA, label: 'Emitida' },
+  { value: EstadoFacturacion.PARCIAL, label: 'Pago parcial' },
+  { value: EstadoFacturacion.PAGADA, label: 'Pagada' },
+  { value: EstadoFacturacion.VENCIDA, label: 'Vencida' },
+  { value: EstadoFacturacion.ANULADA, label: 'Anulada' },
+]
+
 export function FacturacionPage() {
   const [pagina, setPagina] = useState(0)
-  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(true)
   const [estadoCodigo, setEstadoCodigo] = useState<EstadoFacturacion | ''>('')
   const [descargandoId, setDescargandoId] = useState<number | null>(null)
   const TAMANO_PAGINA = 10
   const { data, isLoading, isError, refetch } = useFacturas({ estadoCodigo: estadoCodigo || undefined, page: pagina, size: TAMANO_PAGINA })
   const facturas = data?.content ?? []
+  const cambiarEstado = useCambiarEstadoFactura()
 
   const descargarPdf = async (factura: Factura) => {
     try {
@@ -129,7 +139,14 @@ export function FacturacionPage() {
               {isLoading && <TableSkeletonRows columns={6} />}
               {!isLoading && !isError && facturas.length === 0 && <tr><td colSpan={6} className="p-10 text-center text-muted-foreground"><Receipt className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />No hay comprobantes registrados.</td></tr>}
               {facturas.map((factura) => <tr key={factura.idFacturacion} className="border-t border-border hover:bg-muted/50">
-                <td className="p-3 font-medium text-foreground">{factura.codigoComprobante}</td><td className="p-3">{factura.cliente ?? '—'}</td><td className="p-3"><Link to="/ordenes-compra" className="rounded text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Orden #{factura.idOrdenCompra}</Link></td><td className="p-3">{factura.fechaEmision}</td><td className="p-3">{factura.estadoCodigo ?? factura.idEstadoFacturacion}</td>
+                <td className="p-3 font-medium text-foreground">{factura.codigoComprobante}</td><td className="p-3">{factura.cliente ?? '—'}</td><td className="p-3"><Link to="/ordenes-compra" className="rounded text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Orden #{factura.idOrdenCompra}</Link></td><td className="p-3">{factura.fechaEmision}</td><td className="p-3">
+                  <EstadoEditable
+                    valor={factura.estadoCodigo}
+                    opciones={OPCIONES_ESTADO}
+                    descripcionItem={`el comprobante ${factura.codigoComprobante}`}
+                    onCambiar={(nuevo) => cambiarEstado.mutateAsync({ id: factura.idFacturacion, estado: nuevo as EstadoFacturacion })}
+                  />
+                </td>
                 <td className="p-3 text-center"><button type="button" onClick={() => void descargarPdf(factura)} disabled={descargandoId === factura.idFacturacion} title="Descargar reporte PDF" aria-label={`Descargar PDF ${factura.codigoComprobante}`} className="inline-flex rounded-lg p-2 text-accent transition hover:bg-accent/10 disabled:cursor-wait disabled:opacity-50">{descargandoId === factura.idFacturacion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}</button></td>
               </tr>)}
             </tbody>

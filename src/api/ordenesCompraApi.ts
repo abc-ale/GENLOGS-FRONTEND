@@ -10,5 +10,5 @@ export const ordenesCompraApi = {
   obtener: (id: number) => axiosClient.get<OrdenCompra>(`/ordenes-compra/${id}`).then((r) => r.data),
   crear: (data: OrdenCompraInput) => axiosClient.post<OrdenCompra>('/ordenes-compra', data).then((r) => r.data),
   cambiarEstado: (id: number, estado: EstadoOrdenCompra) =>
-    axiosClient.patch<OrdenCompra>(`/ordenes-compra/${id}/estado`, { estado }).then((r) => r.data),
+    axiosClient.patch<OrdenCompra>(`/ordenes-compra/${id}/estado`, { codigoEstado: estado }).then((r) => r.data),
 }
