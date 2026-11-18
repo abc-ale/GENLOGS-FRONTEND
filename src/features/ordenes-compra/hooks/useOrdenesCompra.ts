@@ -20,6 +20,14 @@ export function useCrearOrdenCompra() {
   })
 }
 
+export function useAdjuntarArchivoOrdenCompra() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, archivo }: { id: number; archivo: File }) => ordenesCompraApi.adjuntarArchivo(id, archivo),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ordenesCompraKeys.all }),
+  })
+}
+
 export function useCambiarEstadoOrdenCompra() {
   const queryClient = useQueryClient()
   return useMutation({
