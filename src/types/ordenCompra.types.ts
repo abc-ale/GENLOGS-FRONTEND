@@ -23,6 +23,6 @@ export interface OrdenCompra {
   total: number
   estado?: string
 }
-export interface OrdenCompraInput { idCotizacion: number; idEstadoOrdenCompra?: number; idCondicionPago: number; numeroOrdenCompra: string; fechaEmisionCliente?: string; fechaRecepcion?: string; urlArchivo?: string; observaciones?: string }
+export interface OrdenCompraInput { idCotizacion: number; idEstadoOrdenCompra?: number; idCondicionPago?: number; numeroOrdenCompra: string; fechaEmisionCliente?: string; fechaRecepcion?: string; urlArchivo?: string; observaciones?: string }
 export interface OrdenCompraFiltros { estadoCodigo?: EstadoOrdenCompra; idCotizacion?: number; page?: number; size?: number }
 export type OrdenesCompraPage = PageResponse<OrdenCompra>

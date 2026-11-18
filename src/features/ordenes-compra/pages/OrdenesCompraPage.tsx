@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, ShoppingCart } from 'lucide-react'
+import { Loader2, Plus, ShoppingCart } from 'lucide-react'
 import {
   useCambiarEstadoOrdenCompra,
   useOrdenesCompra,
 } from '../hooks/useOrdenesCompra'
+import { RegistrarOrdenCompraModal } from '../components/RegistrarOrdenCompraModal'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
@@ -74,6 +75,8 @@ function EstadoEditable({
 export function OrdenesCompraPage() {
   const [paginaActual, setPaginaActual] = useState(0)
   const [estadoCodigo, setEstadoCodigo] = useState<FiltroEstado>('')
+  const [registrando, setRegistrando] = useState(false)
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null)
   const tamanioPagina = 10
 
   const { data, isLoading, isError, refetch } = useOrdenesCompra({
@@ -94,15 +97,47 @@ export function OrdenesCompraPage() {
 
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-foreground">
-          Órdenes de compra
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Gestiona la orden de compra que reemplaza el número de orden legado
-          de la cotización.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Órdenes de compra
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Gestiona la orden de compra que reemplaza el número de orden legado
+            de la cotización.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setMensajeExito(null)
+            setRegistrando(true)
+          }}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#203f68] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#203f68]/90"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Registrar orden de compra
+        </button>
       </header>
+
+      {mensajeExito && (
+        <p
+          role="status"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+        >
+          {mensajeExito}
+        </p>
+      )}
+
+      {registrando && (
+        <RegistrarOrdenCompraModal
+          onClose={() => setRegistrando(false)}
+          onRegistrada={(numero) =>
+            setMensajeExito(`Orden de compra ${numero} registrada en estado Recibida.`)
+          }
+        />
+      )}
 
       <div
         role="group"
