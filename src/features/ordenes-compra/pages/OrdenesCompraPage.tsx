@@ -6,6 +6,7 @@ import {
   useOrdenesCompra,
 } from '../hooks/useOrdenesCompra'
 import { RegistrarOrdenCompraModal } from '../components/RegistrarOrdenCompraModal'
+import { ArchivoOrdenCompra } from '../components/ArchivoOrdenCompra'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
@@ -180,7 +181,7 @@ export function OrdenesCompraPage() {
 
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[880px] text-left text-sm">
             <thead className="bg-muted">
               <tr>
                 <th className="p-3 font-medium text-muted-foreground">
@@ -198,16 +199,19 @@ export function OrdenesCompraPage() {
                 <th className="p-3 font-medium text-muted-foreground">
                   Estado
                 </th>
+                <th className="p-3 font-medium text-muted-foreground">
+                  Archivo del cliente
+                </th>
               </tr>
             </thead>
 
             <tbody>
-              {isLoading && <TableSkeletonRows columns={5} />}
+              {isLoading && <TableSkeletonRows columns={6} />}
 
               {!isLoading && !isError && ordenes.length === 0 && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="p-10 text-center text-muted-foreground"
                   >
                     <ShoppingCart className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
@@ -243,6 +247,14 @@ export function OrdenesCompraPage() {
                       id={orden.idOrdenCompra}
                       numero={orden.numeroOrdenCompra}
                       estado={orden.estadoCodigo}
+                    />
+                  </td>
+
+                  <td className="p-3">
+                    <ArchivoOrdenCompra
+                      idOrdenCompra={orden.idOrdenCompra}
+                      numero={orden.numeroOrdenCompra}
+                      urlArchivo={orden.urlArchivo}
                     />
                   </td>
                 </tr>

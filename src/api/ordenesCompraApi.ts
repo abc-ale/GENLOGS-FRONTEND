@@ -11,4 +11,15 @@ export const ordenesCompraApi = {
   crear: (data: OrdenCompraInput) => axiosClient.post<OrdenCompra>('/ordenes-compra', data).then((r) => r.data),
   cambiarEstado: (id: number, estado: EstadoOrdenCompra) =>
     axiosClient.patch<OrdenCompra>(`/ordenes-compra/${id}/estado`, { codigoEstado: estado }).then((r) => r.data),
+  /** Adjunta (o reemplaza) el archivo enviado por el cliente (RF-35). */
+  adjuntarArchivo: (id: number, archivo: File) => {
+    const formData = new FormData()
+    formData.append('archivo', archivo)
+    // El cliente usa JSON por defecto; con multipart axios deja que el navegador ponga el boundary.
+    return axiosClient
+      .post<OrdenCompra>(`/ordenes-compra/${id}/archivo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
 }
