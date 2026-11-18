@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Download, Loader2, Plus, Receipt } from 'lucide-react'
+import { Banknote, Download, Loader2, Plus, Receipt } from 'lucide-react'
 import { useCambiarEstadoFactura, useFacturas } from '../hooks/useFacturacion'
 import { RegistrarFacturacionModal } from '../components/RegistrarFacturacionModal'
+import { RegistrarPagoModal } from '../components/RegistrarPagoModal'
 import { EstadoEditable, type OpcionEstado } from '@/components/ui/EstadoEditable'
 import { facturacionApi } from '@/api/facturacionApi'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
@@ -83,12 +84,28 @@ const OPCIONES_ESTADO: OpcionEstado[] = [
   { value: EstadoFacturacion.ANULADA, label: 'Anulada' },
 ]
 
+/** Saldo por cobrar del comprobante (total - pagado si el backend no lo envía). */
+function saldoPendiente(factura: Factura): number {
+  const saldo = factura.saldoPendiente ?? Number(factura.total ?? 0) - Number(factura.montoPagado ?? 0)
+  return Math.max(0, Math.round(Number(saldo) * 100) / 100)
+}
+
+/** Solo se cobran comprobantes vigentes con saldo: no anulados ni ya pagados. */
+function admitePago(factura: Factura): boolean {
+  return (
+    factura.estadoCodigo !== EstadoFacturacion.ANULADA &&
+    factura.estadoCodigo !== EstadoFacturacion.PAGADA &&
+    saldoPendiente(factura) > 0
+  )
+}
+
 export function FacturacionPage() {
   const [pagina, setPagina] = useState(0)
   const [estadoCodigo, setEstadoCodigo] = useState<EstadoFacturacion | ''>('')
   const [descargandoId, setDescargandoId] = useState<number | null>(null)
   const [registrando, setRegistrando] = useState(false)
   const [mensajeExito, setMensajeExito] = useState<string | null>(null)
+  const [facturaPago, setFacturaPago] = useState<Factura | null>(null)
   const TAMANO_PAGINA = 10
   const { data, isLoading, isError, refetch } = useFacturas({ estadoCodigo: estadoCodigo || undefined, page: pagina, size: TAMANO_PAGINA })
   const facturas = data?.content ?? []
@@ -143,6 +160,14 @@ export function FacturacionPage() {
         />
       )}
 
+      {facturaPago && (
+        <RegistrarPagoModal
+          factura={facturaPago}
+          onClose={() => setFacturaPago(null)}
+          onRegistrado={setMensajeExito}
+        />
+      )}
+
       <div role="group" aria-label="Filtrar facturas por estado" className="flex gap-2 overflow-x-auto pb-1">
         {[
           { value: '', label: 'Todas' },
@@ -162,13 +187,13 @@ export function FacturacionPage() {
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="w-full min-w-[920px] text-left text-sm">
             <thead className="bg-muted"><tr>
-              <th className="p-3 font-medium text-muted-foreground">Comprobante</th><th className="p-3 font-medium text-muted-foreground">Cliente</th><th className="p-3 font-medium text-muted-foreground">Origen</th><th className="p-3 font-medium text-muted-foreground">Emisión</th><th className="p-3 font-medium text-muted-foreground">Estado</th><th className="p-3 text-center font-medium text-muted-foreground">PDF</th>
+              <th className="p-3 font-medium text-muted-foreground">Comprobante</th><th className="p-3 font-medium text-muted-foreground">Cliente</th><th className="p-3 font-medium text-muted-foreground">Origen</th><th className="p-3 font-medium text-muted-foreground">Emisión</th><th className="p-3 font-medium text-muted-foreground">Estado</th><th className="p-3 font-medium text-muted-foreground">Saldo / cobro</th><th className="p-3 text-center font-medium text-muted-foreground">PDF</th>
             </tr></thead>
             <tbody>
-              {isLoading && <TableSkeletonRows columns={6} />}
-              {!isLoading && !isError && facturas.length === 0 && <tr><td colSpan={6} className="p-10 text-center text-muted-foreground"><Receipt className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />No hay comprobantes registrados.</td></tr>}
+              {isLoading && <TableSkeletonRows columns={7} />}
+              {!isLoading && !isError && facturas.length === 0 && <tr><td colSpan={7} className="p-10 text-center text-muted-foreground"><Receipt className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />No hay comprobantes registrados.</td></tr>}
               {facturas.map((factura) => <tr key={factura.idFacturacion} className="border-t border-border hover:bg-muted/50">
                 <td className="p-3 font-medium text-foreground">{factura.codigoComprobante}</td><td className="p-3">{factura.cliente ?? '—'}</td><td className="p-3"><Link to="/ordenes-compra" className="rounded text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Orden #{factura.idOrdenCompra}</Link></td><td className="p-3">{factura.fechaEmision}</td><td className="p-3">
                   <EstadoEditable
@@ -177,6 +202,25 @@ export function FacturacionPage() {
                     descripcionItem={`el comprobante ${factura.codigoComprobante}`}
                     onCambiar={(nuevo) => cambiarEstado.mutateAsync({ id: factura.idFacturacion, estado: nuevo as EstadoFacturacion })}
                   />
+                </td>
+                <td className="p-3">
+                  <div className="flex items-center gap-3">
+                    <span className="tabular-nums">{factura.moneda ?? ''} {saldoPendiente(factura).toFixed(2)}</span>
+                    {admitePago(factura) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMensajeExito(null)
+                          setFacturaPago(factura)
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                      >
+                        <Banknote className="h-3.5 w-3.5" aria-hidden="true" />
+                        Pago
+                        <span className="sr-only"> del comprobante {factura.codigoComprobante}</span>
+                      </button>
+                    )}
+                  </div>
                 </td>
                 <td className="p-3 text-center"><button type="button" onClick={() => void descargarPdf(factura)} disabled={descargandoId === factura.idFacturacion} title="Descargar reporte PDF" aria-label={`Descargar PDF ${factura.codigoComprobante}`} className="inline-flex rounded-lg p-2 text-accent transition hover:bg-accent/10 disabled:cursor-wait disabled:opacity-50">{descargandoId === factura.idFacturacion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}</button></td>
               </tr>)}

@@ -21,6 +21,9 @@ export const facturacionApi = {
   crear: (data: FacturaInput) => axiosClient.post<Factura>('/facturacion', data).then((r) => r.data),
   cambiarEstado: (id: number, estado: EstadoFacturacion) =>
     axiosClient.patch<Factura>(`/facturacion/${id}/estado`, { codigoEstado: estado }).then((r) => r.data),
+  /** Suma un pago al comprobante (RF-39); el backend lo deja PARCIAL o PAGADA. */
+  registrarPago: (id: number, montoPagado: number) =>
+    axiosClient.patch<Factura>(`/facturacion/${id}/pago`, { montoPagado }).then((r) => r.data),
   enviarSunat: (id: number) => axiosClient.post<Factura>(`/facturacion/${id}/enviar-sunat`).then((r) => r.data),
   anular: (id: number, motivo: string) => axiosClient.post<Factura>(`/facturacion/${id}/anular`, { motivo }).then((r) => r.data),
   descargarPdf: (id: number) => axiosClient.get<Blob>(`/facturacion/${id}/pdf`, { responseType: 'blob' }).then((r) => r.data),

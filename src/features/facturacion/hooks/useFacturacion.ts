@@ -26,6 +26,14 @@ export function useCrearFactura() {
   })
 }
 
+export function useRegistrarPagoFactura() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, monto }: { id: number; monto: number }) => facturacionApi.registrarPago(id, monto),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: facturacionKeys.all }),
+  })
+}
+
 // Referencias estables mientras cargan, para no disparar efectos en cada render.
 const SIN_TIPOS: TipoComprobanteCatalogo[] = []
 const SIN_MONEDAS: MonedaCatalogo[] = []
