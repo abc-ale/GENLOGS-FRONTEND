@@ -38,5 +38,9 @@ export interface Factura {
   saldoPendiente?: number
   detalles?: DetalleFacturacion[]
 }
-export interface FacturaInput { idOrdenCompra: number; idTipoComprobante: number; idEstadoFacturacion?: number; idCondicionPago: number; idMoneda: number; serieComprobante: string; numeroComprobante?: string; fechaEmision?: string; fechaVencimiento?: string; montoPagado?: number; observaciones?: string }
+/** Línea de la facturación: exactamente uno de idProducto o idServicio. */
+export interface LineaFacturaInput { idProducto?: number; idServicio?: number; descripcionPersonalizada?: string; cantidad: number; precioUnitario: number; descuentoUnitario?: number }
+export interface FacturaInput { idOrdenCompra: number; idTipoComprobante: number; idCondicionPago: number; idMoneda: number; serieComprobante: string; numeroComprobante: string; fechaEmision?: string; fechaVencimiento?: string; lineas: LineaFacturaInput[] }
+export interface MonedaCatalogo { idMoneda: number; codigoMoneda: string; nombreMoneda: string; simbolo: string }
+export interface CondicionPagoCatalogo { idCondicionPago: number; nombreCondicion: string; diasCredito?: number | null }
 export interface FacturacionFiltros { estadoCodigo?: EstadoFacturacion; tipoCodigo?: TipoComprobante; idOrdenCompra?: number; page?: number; size?: number }

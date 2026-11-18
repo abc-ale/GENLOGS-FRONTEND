@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Download, Loader2, Receipt } from 'lucide-react'
+import { Download, Loader2, Plus, Receipt } from 'lucide-react'
 import { useCambiarEstadoFactura, useFacturas } from '../hooks/useFacturacion'
+import { RegistrarFacturacionModal } from '../components/RegistrarFacturacionModal'
 import { EstadoEditable, type OpcionEstado } from '@/components/ui/EstadoEditable'
 import { facturacionApi } from '@/api/facturacionApi'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
@@ -86,6 +87,8 @@ export function FacturacionPage() {
   const [pagina, setPagina] = useState(0)
   const [estadoCodigo, setEstadoCodigo] = useState<EstadoFacturacion | ''>('')
   const [descargandoId, setDescargandoId] = useState<number | null>(null)
+  const [registrando, setRegistrando] = useState(false)
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null)
   const TAMANO_PAGINA = 10
   const { data, isLoading, isError, refetch } = useFacturas({ estadoCodigo: estadoCodigo || undefined, page: pagina, size: TAMANO_PAGINA })
   const facturas = data?.content ?? []
@@ -109,10 +112,36 @@ export function FacturacionPage() {
 
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-foreground">Facturación</h1>
-        <p className="text-sm text-muted-foreground">Comprobantes, tipos y estados de emisión.</p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Facturación</h1>
+          <p className="text-sm text-muted-foreground">Comprobantes, tipos y estados de emisión.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setMensajeExito(null)
+            setRegistrando(true)
+          }}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#203f68] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#203f68]/90"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Registrar facturación
+        </button>
       </header>
+
+      {mensajeExito && (
+        <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {mensajeExito}
+        </p>
+      )}
+
+      {registrando && (
+        <RegistrarFacturacionModal
+          onClose={() => setRegistrando(false)}
+          onRegistrada={(comprobante) => setMensajeExito(`Comprobante ${comprobante} registrado en estado Emitida.`)}
+        />
+      )}
 
       <div role="group" aria-label="Filtrar facturas por estado" className="flex gap-2 overflow-x-auto pb-1">
         {[
