@@ -1,6 +1,15 @@
 import { axiosClient } from './axiosClient'
 import type { PageResponse } from '@/types/common.types'
-import type { DetalleFacturacion, EstadoFacturacion, Factura, FacturaInput, FacturacionFiltros } from '@/types/facturacion.types'
+import type {
+  CondicionPagoCatalogo,
+  DetalleFacturacion,
+  EstadoFacturacion,
+  Factura,
+  FacturaInput,
+  FacturacionFiltros,
+  MonedaCatalogo,
+  TipoComprobanteCatalogo,
+} from '@/types/facturacion.types'
 
 export const facturacionApi = {
   listar: async (filtros: FacturacionFiltros = {}): Promise<PageResponse<Factura>> => {
@@ -15,4 +24,10 @@ export const facturacionApi = {
   enviarSunat: (id: number) => axiosClient.post<Factura>(`/facturacion/${id}/enviar-sunat`).then((r) => r.data),
   anular: (id: number, motivo: string) => axiosClient.post<Factura>(`/facturacion/${id}/anular`, { motivo }).then((r) => r.data),
   descargarPdf: (id: number) => axiosClient.get<Blob>(`/facturacion/${id}/pdf`, { responseType: 'blob' }).then((r) => r.data),
+  // Catálogos que pide el registro de la facturación (CU-23).
+  listarTiposComprobante: () =>
+    axiosClient.get<TipoComprobanteCatalogo[]>('/tipos-comprobante').then((r) => r.data),
+  listarMonedas: () => axiosClient.get<MonedaCatalogo[]>('/catalogos/monedas').then((r) => r.data),
+  listarCondicionesPago: () =>
+    axiosClient.get<CondicionPagoCatalogo[]>('/catalogos/condiciones-pago').then((r) => r.data),
 }
