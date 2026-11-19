@@ -23,6 +23,7 @@ import ProveedoresListPage from '@/features/clientes-proveedores/pages/Proveedor
 import { EmpresasMinerasPage } from '@/features/empresas-mineras/pages/EmpresasMinerasPage'
 import { OrdenesCompraPage } from '@/features/ordenes-compra/pages/OrdenesCompraPage'
 import { FacturacionPage } from '@/features/facturacion/pages/FacturacionPage'
+import { CatalogosMaestrosPage } from '@/features/catalogos-maestros/pages/CatalogosMaestrosPage'
 
 export const router = createBrowserRouter([
   { element: <AuthLayout />, children: [
@@ -48,7 +49,10 @@ export const router = createBrowserRouter([
     { path: '/cotizaciones/:id', element: <CotizacionDetallePage /> },
     { path: '/ordenes-compra', element: <OrdenesCompraPage /> },
     { path: '/facturacion', element: <FacturacionPage /> },
-    { element: <RoleGuard allowedRoles={['ADMINISTRADOR']} />, children: [{ path: '/usuarios', element: <UsuariosPage /> }] },
+    { element: <RoleGuard allowedRoles={['ADMINISTRADOR']} />, children: [
+      { path: '/usuarios', element: <UsuariosPage /> },
+      { path: '/catalogos-maestros', element: <CatalogosMaestrosPage /> },
+    ] },
   ] }] },
   { path: '*', element: <Navigate to="/dashboard" replace /> },
 ])
