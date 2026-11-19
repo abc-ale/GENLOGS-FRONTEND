@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import * as productosApi from "@/api/productosApi"
-import type { ProductoFiltros } from "@/types/producto.types"
+import type { ProductoFiltros, ProductoProveedorRequest } from "@/types/producto.types"
 
 export const productosKeys = {
   all: ["productos"] as const,
@@ -24,6 +24,15 @@ export function useProducto(id: number) {
     queryKey: productosKeys.detalle(id),
     queryFn: () => productosApi.obtenerProducto(id),
     enabled: Number.isInteger(id) && id > 0,
+  })
+}
+
+export function useAsociarProveedorProducto(idProducto: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: ProductoProveedorRequest) =>
+      productosApi.asociarProveedorProducto(idProducto, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: productosKeys.detalle(idProducto) }),
   })
 }
 

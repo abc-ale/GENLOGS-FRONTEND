@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useEliminarProducto, useProducto } from "@/hooks/useProductos"
 import { ProductoDetalle } from "../components/ProductoDetalle"
+import { ProveedorProductoForm } from "../components/ProveedorProductoForm"
 
 function DetalleSkeleton() {
   return (
@@ -103,6 +104,10 @@ export function ProductoDetallePage() {
               )}
             </p>
           )}
+          <ProveedorProductoForm
+            idProducto={producto.idProducto}
+            nombreProducto={producto.nombreProducto}
+          />
         </>
       )}
     </div>

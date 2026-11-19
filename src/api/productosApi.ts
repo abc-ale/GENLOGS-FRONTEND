@@ -6,6 +6,7 @@ import type {
   ImagenNueva,
   Producto,
   ProductoFiltros,
+  ProductoProveedorRequest,
   ProductoRequest,
 } from "@/types/producto.types"
 import type { PageResponse } from "@/types/common.types"
@@ -70,6 +71,17 @@ export async function agregarDocumentoProducto(
     nombreDocumento: documento.nombreDocumento,
     urlDocumento: documento.url,
   })
+}
+
+/**
+ * Asocia un proveedor al producto con precio referencial, moneda, plazo y si es el
+ * preferido (RF-15). Si la asociación ya existe, el backend actualiza sus datos.
+ */
+export async function asociarProveedorProducto(
+  idProducto: number,
+  payload: ProductoProveedorRequest
+): Promise<void> {
+  await axiosClient.post(`/productos/${idProducto}/proveedores`, payload)
 }
 
 /** Extrae el mensaje de error que devuelve Spring (`message`) o usa uno por defecto. */
