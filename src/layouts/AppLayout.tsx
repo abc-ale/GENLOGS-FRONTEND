@@ -18,6 +18,7 @@ import {
   Sun,
   Moon,
   Search,
+  Database,
 } from 'lucide-react';
 import logoGenlogs from '../assets/GENLOGS.png';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -45,6 +46,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Empresas mineras', path: '/empresas-mineras', icon: Building2 },
   { label: 'Reportes', path: '/reportes', icon: BarChart3 },
   { label: 'Usuarios', path: '/usuarios', icon: UserCog },
+  { label: 'Catálogos maestros', path: '/catalogos-maestros', icon: Database },
 ];
 
 function linkClass(isActive: boolean) {
