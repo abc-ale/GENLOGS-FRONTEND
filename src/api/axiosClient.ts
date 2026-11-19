@@ -7,7 +7,7 @@ import axios from "axios"
 // "usuario o contraseña incorrectos").
 const DEFAULT_API_URL = "https://genlogs-backend-bkuv.onrender.com/api"
 
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL
   if (envUrl) return envUrl.replace(/\/+$/, "")
   return DEFAULT_API_URL

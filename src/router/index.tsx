@@ -24,8 +24,11 @@ import { EmpresasMinerasPage } from '@/features/empresas-mineras/pages/EmpresasM
 import { OrdenesCompraPage } from '@/features/ordenes-compra/pages/OrdenesCompraPage'
 import { FacturacionPage } from '@/features/facturacion/pages/FacturacionPage'
 import { CatalogosMaestrosPage } from '@/features/catalogos-maestros/pages/CatalogosMaestrosPage'
+import { CatalogoPublicoPage } from '@/features/catalogo-publico/pages/CatalogoPublicoPage'
 
 export const router = createBrowserRouter([
+  // Catálogo web público (RF-16): fuera de ProtectedRoute, no pide sesión.
+  { path: '/catalogo', element: <CatalogoPublicoPage /> },
   { element: <AuthLayout />, children: [
     { path: '/login', element: <LoginPage /> },
     { path: '/recuperar-password', element: <ForgotPasswordPage /> },
