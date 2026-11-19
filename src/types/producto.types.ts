@@ -102,3 +102,13 @@ export interface MediosNuevosProducto {
   documentos: DocumentoNuevo[]
 }
 
+
+/** Asociación de un proveedor al producto con su precio y plazo (RF-15, CU-11). */
+export interface ProductoProveedorRequest {
+  idProveedor: number
+  /** Opcional; si se informa, la moneda es obligatoria. */
+  precioReferencial?: number
+  idMoneda?: number
+  tiempoEntregaDias?: number
+  proveedorPreferido: boolean
+}
