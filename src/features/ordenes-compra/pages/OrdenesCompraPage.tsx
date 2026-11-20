@@ -11,6 +11,7 @@ import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { EstadoOrdenCompra } from '@/types/ordenCompra.types'
+import { usePermisos } from '@/hooks/usePermisos'
 
 type FiltroEstado = EstadoOrdenCompra | ''
 
@@ -79,6 +80,8 @@ export function OrdenesCompraPage() {
   const [registrando, setRegistrando] = useState(false)
   const [mensajeExito, setMensajeExito] = useState<string | null>(null)
   const tamanioPagina = 10
+  // CU-20 a CU-22: solo el Jefe Administrativo registra y modifica órdenes.
+  const puedeGestionar = usePermisos().puede('ordenesCompra.gestionar')
 
   const { data, isLoading, isError, refetch } = useOrdenesCompra({
     estadoCodigo: estadoCodigo || undefined,
@@ -109,17 +112,19 @@ export function OrdenesCompraPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setMensajeExito(null)
-            setRegistrando(true)
-          }}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#203f68] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#203f68]/90"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          Registrar orden de compra
-        </button>
+        {puedeGestionar && (
+          <button
+            type="button"
+            onClick={() => {
+              setMensajeExito(null)
+              setRegistrando(true)
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#203f68] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#203f68]/90"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Registrar orden de compra
+          </button>
+        )}
       </header>
 
       {mensajeExito && (
@@ -243,11 +248,17 @@ export function OrdenesCompraPage() {
                   <td className="p-3">{orden.fechaRecepcion}</td>
 
                   <td className="p-3">
-                    <EstadoEditable
-                      id={orden.idOrdenCompra}
-                      numero={orden.numeroOrdenCompra}
-                      estado={orden.estadoCodigo}
-                    />
+                    {puedeGestionar ? (
+                      <EstadoEditable
+                        id={orden.idOrdenCompra}
+                        numero={orden.numeroOrdenCompra}
+                        estado={orden.estadoCodigo}
+                      />
+                    ) : (
+                      <span className="font-medium text-foreground">
+                        {opcionesEstado.find((o) => o.value === orden.estadoCodigo)?.label ?? orden.estado ?? '—'}
+                      </span>
+                    )}
                   </td>
 
                   <td className="p-3">
@@ -255,6 +266,7 @@ export function OrdenesCompraPage() {
                       idOrdenCompra={orden.idOrdenCompra}
                       numero={orden.numeroOrdenCompra}
                       urlArchivo={orden.urlArchivo}
+                      soloLectura={!puedeGestionar}
                     />
                   </td>
                 </tr>

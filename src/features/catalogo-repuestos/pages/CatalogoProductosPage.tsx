@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { ErrorBanner } from "@/components/ui/ErrorBanner"
 import { PaginationBar } from "@/components/ui/PaginationBar"
 import { useProductos } from "@/hooks/useProductos"
+import { usePermisos } from "@/hooks/usePermisos"
 import { cn } from "@/lib/utils/utils"
 import type { ProductoFiltros } from "@/types/producto.types"
 import { CategoriaSelector } from "../components/CategoriaSelector"
@@ -20,6 +21,8 @@ const selectClass =
   "h-10 rounded-lg border border-border bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 
 export function CatalogoProductosPage() {
+  // CU-09: solo el Jefe Administrativo registra productos.
+  const puedeGestionar = usePermisos().puede("productos.gestionar")
   const [texto, setTexto] = useState("")
   const [idCategoria, setIdCategoria] = useState<number | undefined>(undefined)
   const [idMarca, setIdMarca] = useState<number | undefined>(undefined)
@@ -70,12 +73,14 @@ export function CatalogoProductosPage() {
             </p>
           )}
         </div>
-        <Button asChild>
-          <Link to="/catalogo-repuestos/nuevo">
-            <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
-            Nuevo producto
-          </Link>
-        </Button>
+        {puedeGestionar && (
+          <Button asChild>
+            <Link to="/catalogo-repuestos/nuevo">
+              <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
+              Nuevo producto
+            </Link>
+          </Button>
+        )}
       </div>
 
       <div
@@ -146,11 +151,11 @@ export function CatalogoProductosPage() {
             <Button type="button" variant="outline" size="sm" onClick={limpiarFiltros}>
               Limpiar filtros
             </Button>
-          ) : (
+          ) : puedeGestionar ? (
             <Button asChild size="sm">
               <Link to="/catalogo-repuestos/nuevo">Crear el primer producto</Link>
             </Button>
-          )}
+          ) : null}
         </div>
       )}
 

@@ -10,8 +10,11 @@ import { ErrorBanner } from "@/components/ui/ErrorBanner"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import type { Servicio, ServicioFormValues } from "@/types/servicio.types"
 import { PaginationBar } from "@/components/ui/PaginationBar"
+import { usePermisos } from "@/hooks/usePermisos"
 
 export function CatalogoServiciosPage() {
+  // CU-13: solo el Asesor Comercial gestiona servicios.
+  const puedeGestionar = usePermisos().puede("servicios.gestionar")
   const [mostrarForm, setMostrarForm] = useState(false)
   const [servicioEditando, setServicioEditando] = useState<Servicio | null>(null)
   const [servicioADesactivar, setServicioADesactivar] = useState<Servicio | null>(null)
@@ -85,15 +88,17 @@ export function CatalogoServiciosPage() {
           <h1 className="text-2xl font-semibold text-foreground">Catálogo de servicios</h1>
           <p className="text-sm text-muted-foreground">Define los servicios y su duración estimada.</p>
         </div>
+        {puedeGestionar && (
         <button
           onClick={handleNuevo}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent/90 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
         >
           + Nuevo servicio
         </button>
+        )}
       </div>
 
-      {mostrarForm && (
+      {mostrarForm && puedeGestionar && (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">
@@ -177,7 +182,9 @@ export function CatalogoServiciosPage() {
           <p className="text-sm text-muted-foreground max-w-xs">
             {hayFiltros
               ? "Ningún servicio coincide con los filtros. Prueba con otros criterios."
-              : "Aún no hay servicios registrados. Crea el primero con «Nuevo servicio»."}
+              : puedeGestionar
+                ? "Aún no hay servicios registrados. Crea el primero con «Nuevo servicio»."
+                : "Aún no hay servicios registrados."}
           </p>
         </div>
       )}
@@ -188,8 +195,8 @@ export function CatalogoServiciosPage() {
           <ServicioCard
             key={servicio.idServicio}
             servicio={servicio}
-            onEditar={handleEditar}
-            onDesactivar={handleDesactivar}
+            onEditar={puedeGestionar ? handleEditar : undefined}
+            onDesactivar={puedeGestionar ? handleDesactivar : undefined}
           />
         ))}
       </div>

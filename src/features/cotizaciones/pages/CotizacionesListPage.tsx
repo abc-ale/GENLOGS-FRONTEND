@@ -5,6 +5,7 @@ import { PaginationBar } from '@/components/ui/PaginationBar';
 import { useNavigate } from 'react-router-dom';
 import { useCotizaciones } from '../hooks/useCotizaciones';
 import { cotizacionesApi } from '@/api/cotizacionesApi';
+import { usePermisos } from '@/hooks/usePermisos';
 import {
   EstadoCotizacion,
   Moneda,
@@ -27,6 +28,8 @@ import {
 
 export const CotizacionesListPage: React.FC = () => {
   const navigate = useNavigate();
+  // CU-15: solo el Asesor Comercial registra cotizaciones.
+  const puedeCrear = usePermisos().puede('cotizaciones.gestionar');
   const [filtros, setFiltros] = useState<CotizacionesFilterParams>({
     page: 0,
     size: 10,
@@ -86,13 +89,15 @@ export const CotizacionesListPage: React.FC = () => {
                 Gestiona tus cotizaciones y seguimiento de clientes
               </p>
             </div>
-            <button
-              onClick={() => navigate('/cotizaciones/nueva')}
-              className="inline-flex items-center px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 transition font-semibold"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Nueva Cotización
-            </button>
+            {puedeCrear && (
+              <button
+                onClick={() => navigate('/cotizaciones/nueva')}
+                className="inline-flex items-center px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 transition font-semibold"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Nueva Cotización
+              </button>
+            )}
           </div>
         </div>
 
@@ -253,13 +258,15 @@ export const CotizacionesListPage: React.FC = () => {
             <p className="text-muted-foreground mb-6">
               No hay cotizaciones disponibles con los filtros seleccionados
             </p>
-            <button
-              onClick={() => navigate('/cotizaciones/nueva')}
-              className="inline-flex items-center px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition font-medium"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Crear Primera Cotización
-            </button>
+            {puedeCrear && (
+              <button
+                onClick={() => navigate('/cotizaciones/nueva')}
+                className="inline-flex items-center px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition font-medium"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Crear Primera Cotización
+              </button>
+            )}
           </div>
         )}
       </div>

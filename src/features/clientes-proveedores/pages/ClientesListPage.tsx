@@ -7,6 +7,7 @@ import { PaginationBar } from '@/components/ui/PaginationBar';
 import { useCrearCliente } from '../hooks/useCrearCliente';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
 import type { FiltrosCliente } from '../../../types/cliente.types';
+import { usePermisos } from '@/hooks/usePermisos';
 
 export default function ClientesListPage() {
   const [filtros, setFiltros] = useState<FiltrosCliente>({});
@@ -16,6 +17,8 @@ export default function ClientesListPage() {
   const TAMANO_PAGINA = 10;
   const { data = [], isLoading, isError } = useClientes({ ...debounced, page: 0, size: 500 });
   const crear = useCrearCliente();
+  // CU-04: Asesor Comercial y Jefe Administrativo registran clientes.
+  const puedeGestionar = usePermisos().puede('clientes.gestionar');
   const clientesPagina = data.slice(pagina * TAMANO_PAGINA, (pagina + 1) * TAMANO_PAGINA);
 
   return (
@@ -25,15 +28,17 @@ export default function ClientesListPage() {
           <h1 className="text-2xl font-semibold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground">Administra la cartera de clientes y sus contactos.</p>
         </div>
+        {puedeGestionar && (
         <button
           onClick={() => setMostrarForm((v) => !v)}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent/90 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
         >
           {mostrarForm ? 'Cerrar' : 'Nuevo cliente'}
         </button>
+        )}
       </header>
 
-      {mostrarForm && (
+      {mostrarForm && puedeGestionar && (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <ClienteForm
             isSubmitting={crear.isPending}

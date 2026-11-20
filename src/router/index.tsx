@@ -1,8 +1,9 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { AppLayout } from '@/layouts/AppLayout'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 import { RoleGuard } from '@/router/RoleGuard'
+import { InicioPorRol } from '@/router/InicioPorRol'
 import { LoginPage } from '@/features/auth/components/LoginPage'
 import { ForgotPasswordPage } from '@/features/auth/components/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/features/auth/components/ResetPasswordPage'
@@ -35,27 +36,29 @@ export const router = createBrowserRouter([
     { path: '/reset-password', element: <ResetPasswordPage /> },
   ] },
   { element: <ProtectedRoute />, children: [{ element: <AppLayout />, children: [
-    { path: '/', element: <Navigate to="/dashboard" replace /> },
-    { path: '/dashboard', element: <DashboardPage /> },
+    // "/" lleva a la pantalla de inicio de cada rol (el Asesor no tiene Dashboard).
+    { path: '/', element: <InicioPorRol /> },
+    // Permisos por rol (RF-31): misma matriz que el backend, en src/lib/permisos.ts.
     { path: '/clientes', element: <ClientesListPage /> },
     { path: '/clientes/:id', element: <ClienteDetallePage /> },
     { path: '/proveedores', element: <ProveedoresListPage /> },
     { path: '/empresas-mineras', element: <EmpresasMinerasPage /> },
     { path: '/catalogo-repuestos', element: <CatalogoProductosPage /> },
-    { path: '/catalogo-repuestos/nuevo', element: <NuevoProductoPage /> },
     { path: '/catalogo-repuestos/:id', element: <ProductoDetallePage /> },
-    { path: '/catalogo-repuestos/:id/editar', element: <EditarProductoPage /> },
     { path: '/catalogo-servicios', element: <CatalogoServiciosPage /> },
-    { path: '/reportes', element: <ReportesPage /> },
     { path: '/cotizaciones', element: <CotizacionesListPage /> },
-    { path: '/cotizaciones/nueva', element: <NuevaCotizacionPage /> },
     { path: '/cotizaciones/:id', element: <CotizacionDetallePage /> },
     { path: '/ordenes-compra', element: <OrdenesCompraPage /> },
-    { path: '/facturacion', element: <FacturacionPage /> },
-    { element: <RoleGuard allowedRoles={['ADMINISTRADOR']} />, children: [
-      { path: '/usuarios', element: <UsuariosPage /> },
-      { path: '/catalogos-maestros', element: <CatalogosMaestrosPage /> },
+    { element: <RoleGuard permiso="ver.dashboard" />, children: [{ path: '/dashboard', element: <DashboardPage /> }] },
+    { element: <RoleGuard permiso="ver.reportes" />, children: [{ path: '/reportes', element: <ReportesPage /> }] },
+    { element: <RoleGuard permiso="ver.facturacion" />, children: [{ path: '/facturacion', element: <FacturacionPage /> }] },
+    { element: <RoleGuard permiso="cotizaciones.gestionar" />, children: [{ path: '/cotizaciones/nueva', element: <NuevaCotizacionPage /> }] },
+    { element: <RoleGuard permiso="productos.gestionar" />, children: [
+      { path: '/catalogo-repuestos/nuevo', element: <NuevoProductoPage /> },
+      { path: '/catalogo-repuestos/:id/editar', element: <EditarProductoPage /> },
     ] },
+    { element: <RoleGuard permiso="ver.usuarios" />, children: [{ path: '/usuarios', element: <UsuariosPage /> }] },
+    { element: <RoleGuard permiso="ver.catalogosMaestros" />, children: [{ path: '/catalogos-maestros', element: <CatalogosMaestrosPage /> }] },
   ] }] },
-  { path: '*', element: <Navigate to="/dashboard" replace /> },
+  { path: '*', element: <InicioPorRol /> },
 ])

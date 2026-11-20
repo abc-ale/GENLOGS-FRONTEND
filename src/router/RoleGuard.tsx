@@ -1,21 +1,24 @@
-import { Navigate, useLocation } from "react-router-dom"
-import { Outlet } from "react-router-dom"
-import { useAuthStore } from "@/features/auth/store/authStore"
+import { Navigate, Outlet, useLocation } from "react-router-dom"
+import { usePermisos } from "@/hooks/usePermisos"
+import type { Permiso } from "@/lib/permisos"
 
 interface RoleGuardProps {
-  allowedRoles: string[]
+  /** Permiso de la matriz de roles (src/lib/permisos.ts) que exige la ruta. */
+  permiso: Permiso
   children?: React.ReactNode
 }
 
-export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
+/**
+ * Protege una ruta según el rol (RF-31). Si el rol no tiene el permiso, lo lleva
+ * a su pantalla de inicio (el Asesor no tiene Dashboard, así que no se usa
+ * /dashboard fijo para no entrar en un bucle de redirecciones).
+ */
+export function RoleGuard({ permiso, children }: RoleGuardProps) {
   const location = useLocation()
-  // El rol real vive en el store de auth (nombreRol), no en localStorage:
-  // "user_role" nunca se escribía en ningún lado, así que este guard siempre
-  // bloqueaba a todos, incluido un ADMINISTRADOR real.
-  const userRole = useAuthStore((state) => state.nombreRol) ?? ""
+  const { puede, inicio } = usePermisos()
 
-  if (!allowedRoles.includes(userRole.toUpperCase())) {
-    return <Navigate to="/dashboard" state={{ from: location }} replace />
+  if (!puede(permiso)) {
+    return <Navigate to={inicio} state={{ from: location }} replace />
   }
 
   return children ? <>{children}</> : <Outlet />

@@ -24,29 +24,32 @@ import logoGenlogs from '../assets/GENLOGS.png';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useTheme } from '@/hooks/useTheme';
 import { GlobalSearchDialog } from '@/components/ui/GlobalSearchDialog';
+import { usePermisos } from '@/hooks/usePermisos';
+import type { Permiso } from '@/lib/permisos';
 
-type NavItem = { label: string; path: string; icon: React.ElementType };
+/** Cada opción del menú indica el permiso que la muestra (RF-31, src/lib/permisos.ts). */
+type NavItem = { label: string; path: string; icon: React.ElementType; permiso: Permiso };
 
 /** Un solo menú, una sola columna: todos los módulos en el mismo orden. */
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Cotizaciones', path: '/cotizaciones', icon: FileText },
-  { label: 'Órdenes de compra', path: '/ordenes-compra', icon: ShoppingCart },
-  { label: 'Facturación', path: '/facturacion', icon: Receipt },
-  { label: 'Clientes', path: '/clientes', icon: Users },
-  { label: 'Proveedores', path: '/proveedores', icon: Truck },
+  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, permiso: 'ver.dashboard' },
+  { label: 'Cotizaciones', path: '/cotizaciones', icon: FileText, permiso: 'ver.cotizaciones' },
+  { label: 'Órdenes de compra', path: '/ordenes-compra', icon: ShoppingCart, permiso: 'ver.ordenesCompra' },
+  { label: 'Facturación', path: '/facturacion', icon: Receipt, permiso: 'ver.facturacion' },
+  { label: 'Clientes', path: '/clientes', icon: Users, permiso: 'ver.clientes' },
+  { label: 'Proveedores', path: '/proveedores', icon: Truck, permiso: 'ver.proveedores' },
 ];
 
 const catalogoSubItems: NavItem[] = [
-  { label: 'Repuestos', path: '/catalogo-repuestos', icon: Package },
-  { label: 'Servicios', path: '/catalogo-servicios', icon: Package },
+  { label: 'Repuestos', path: '/catalogo-repuestos', icon: Package, permiso: 'ver.catalogo' },
+  { label: 'Servicios', path: '/catalogo-servicios', icon: Package, permiso: 'ver.catalogo' },
 ];
 
 const adminNavItems: NavItem[] = [
-  { label: 'Empresas mineras', path: '/empresas-mineras', icon: Building2 },
-  { label: 'Reportes', path: '/reportes', icon: BarChart3 },
-  { label: 'Usuarios', path: '/usuarios', icon: UserCog },
-  { label: 'Catálogos maestros', path: '/catalogos-maestros', icon: Database },
+  { label: 'Empresas mineras', path: '/empresas-mineras', icon: Building2, permiso: 'ver.empresasMineras' },
+  { label: 'Reportes', path: '/reportes', icon: BarChart3, permiso: 'ver.reportes' },
+  { label: 'Usuarios', path: '/usuarios', icon: UserCog, permiso: 'ver.usuarios' },
+  { label: 'Catálogos maestros', path: '/catalogos-maestros', icon: Database, permiso: 'ver.catalogosMaestros' },
 ];
 
 function linkClass(isActive: boolean) {
@@ -77,6 +80,8 @@ export function AppLayout() {
   const nombreRol = useAuthStore((s) => s.nombreRol);
   const logout = useAuthStore((s) => s.logout);
   const { tema, alternarTema } = useTheme();
+  const { puede, inicio } = usePermisos();
+  const visibles = (items: NavItem[]) => items.filter((item) => puede(item.permiso));
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -124,10 +129,10 @@ export function AppLayout() {
     <div className="flex h-full flex-col">
       {/* Logo centrado, sin texto adicional */}
       <Link
-        to="/dashboard"
+        to={inicio}
         onClick={closeMenu}
         className="flex items-center justify-center px-6 pb-5 pt-6 focus-visible:outline-none"
-        aria-label="GenLogs — ir al dashboard"
+        aria-label="GenLogs — ir al inicio"
       >
         <img
           src={logoGenlogs}
@@ -142,7 +147,7 @@ export function AppLayout() {
 
       {/* Una sola columna */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-5" aria-label="Navegación principal">
-        {navItems.map((item) => (
+        {visibles(navItems).map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
@@ -169,7 +174,7 @@ export function AppLayout() {
           </button>
           {(isCatalogoOpen || isCatalogoActive) && (
             <div className="ml-[1.35rem] mt-1 space-y-1 border-l border-border pl-3">
-              {catalogoSubItems.map((sub) => (
+              {visibles(catalogoSubItems).map((sub) => (
                 <NavLink
                   key={sub.path}
                   to={sub.path}
@@ -183,7 +188,7 @@ export function AppLayout() {
           )}
         </div>
 
-        {adminNavItems.map((item) => (
+        {visibles(adminNavItems).map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

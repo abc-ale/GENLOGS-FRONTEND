@@ -21,6 +21,8 @@ interface ArchivoOrdenCompraProps {
   idOrdenCompra: number
   numero: string
   urlArchivo?: string | null
+  /** Sin permiso para gestionar órdenes: solo se muestra el enlace al archivo. */
+  soloLectura?: boolean
 }
 
 function validar(archivo: File): string | null {
@@ -46,7 +48,7 @@ function mensajeError(error: unknown): string {
  * Celda de la tabla de órdenes: adjunta el archivo enviado por el cliente
  * (RF-35, CU-19) o, si ya existe, permite verlo y reemplazarlo.
  */
-export function ArchivoOrdenCompra({ idOrdenCompra, numero, urlArchivo }: ArchivoOrdenCompraProps) {
+export function ArchivoOrdenCompra({ idOrdenCompra, numero, urlArchivo, soloLectura = false }: ArchivoOrdenCompraProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const adjuntar = useAdjuntarArchivoOrdenCompra()
@@ -87,6 +89,9 @@ export function ArchivoOrdenCompra({ idOrdenCompra, numero, urlArchivo }: Archiv
           </a>
         )}
 
+        {soloLectura && !urlArchivo && <span className="text-muted-foreground">—</span>}
+
+        {!soloLectura && (
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -101,6 +106,7 @@ export function ArchivoOrdenCompra({ idOrdenCompra, numero, urlArchivo }: Archiv
           {adjuntar.isPending ? 'Subiendo…' : urlArchivo ? 'Reemplazar' : 'Adjuntar'}
           <span className="sr-only"> archivo de la orden {numero}</span>
         </button>
+        )}
 
         <input
           ref={inputRef}

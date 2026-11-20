@@ -5,6 +5,7 @@ import { login } from "@/api/authApi"
 import { useAuthStore } from "@/features/auth/store/authStore"
 import { PasswordInput } from "@/components/ui/PasswordInput"
 import { IconInput } from "@/components/ui/IconInput"
+import { rutaInicio } from "@/lib/permisos"
 
 export function LoginPage() {
   const [nombreUsuario, setNombreUsuario] = useState("")
@@ -29,7 +30,8 @@ export function LoginPage() {
       }
       
       setAuth(tokenRecibido, data.nombreUsuario, data.nombreRol)
-      navigate("/dashboard")
+      // Cada rol entra a su pantalla de inicio (el Asesor no tiene Dashboard).
+      navigate(rutaInicio(data.nombreRol))
     } catch (error: unknown) {
       const err = error as {
         code?: string
