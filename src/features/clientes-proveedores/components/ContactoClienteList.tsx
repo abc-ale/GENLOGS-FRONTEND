@@ -5,6 +5,7 @@ import { contactoSchema, type ContactoFormValues } from '../../../lib/validators
 import type { ContactoCliente } from '../../../types/proveedor.types';
 import { useAgregarContacto, useEliminarContacto } from '../hooks/useProveedores';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { usePermisos } from '@/hooks/usePermisos';
 
 const input = 'rounded border border-border p-2 text-sm';
 
@@ -12,6 +13,8 @@ export function ContactoClienteList({ clienteId, idTercero, contactos }: { clien
   const agregar = useAgregarContacto(clienteId, idTercero);
   const eliminar = useEliminarContacto(clienteId);
   const [contactoAEliminar, setContactoAEliminar] = useState<ContactoCliente | null>(null);
+  // CU-05 y CU-08: Asesor Comercial y Jefe Administrativo gestionan contactos.
+  const puedeGestionar = usePermisos().puede('contactos.gestionar');
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ContactoFormValues>({
     resolver: zodResolver(contactoSchema),
     defaultValues: { principal: false },
@@ -24,7 +27,11 @@ export function ContactoClienteList({ clienteId, idTercero, contactos }: { clien
   return (
     <section className="space-y-4">
       <ul className="divide-y divide-border rounded border border-border">
-        {contactos.length === 0 && <li className="p-3 text-sm text-muted-foreground">Aún no hay contactos. Agrega el primero abajo.</li>}
+        {contactos.length === 0 && (
+          <li className="p-3 text-sm text-muted-foreground">
+            {puedeGestionar ? 'Aún no hay contactos. Agrega el primero abajo.' : 'Aún no hay contactos.'}
+          </li>
+        )}
         {contactos.map((c) => (
           <li key={c.id ?? c.idContacto} className="flex items-center justify-between gap-3 p-3 text-sm">
             <div>
@@ -33,17 +40,20 @@ export function ContactoClienteList({ clienteId, idTercero, contactos }: { clien
               </div>
               <div className="text-muted-foreground">{c.cargo} · {c.telefono} · {c.email ?? c.correo}</div>
             </div>
-            <button
-              onClick={() => setContactoAEliminar(c)}
-              disabled={eliminar.isPending}
-              className="text-destructive hover:underline disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-            >
-              Eliminar contacto
-            </button>
+            {puedeGestionar && (
+              <button
+                onClick={() => setContactoAEliminar(c)}
+                disabled={eliminar.isPending}
+                className="text-destructive hover:underline disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                Eliminar contacto
+              </button>
+            )}
           </li>
         ))}
       </ul>
 
+      {puedeGestionar && (
       <form onSubmit={onSubmit} className="grid gap-2 sm:grid-cols-2" noValidate>
         {(['nombre', 'cargo', 'telefono', 'email'] as const).map((f) => (
           <label key={f} className="text-sm capitalize">
@@ -63,6 +73,7 @@ export function ContactoClienteList({ clienteId, idTercero, contactos }: { clien
           {agregar.isPending ? 'Agregando…' : 'Agregar contacto'}
         </button>
       </form>
+      )}
 
       <ConfirmDialog
         open={contactoAEliminar !== null}

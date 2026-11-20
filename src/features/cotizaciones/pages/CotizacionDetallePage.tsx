@@ -11,6 +11,7 @@ import { SeguimientoTimeline } from '../components/SeguimientoTimeline';
 import { AdjuntoCotizacionUploader } from '../components/AdjuntoCotizacionUploader';
 import { PipelineBreadcrumb, type PipelineStep } from '@/components/ui/PipelineBreadcrumb';
 import { EstadoCotizacion } from '@/types/cotizacion.types';
+import { usePermisos } from '@/hooks/usePermisos';
 import {
   formatearMoneda,
   mapearEstadoCotizacion,
@@ -29,6 +30,8 @@ export const CotizacionDetallePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const cotizacionId = id ? Number(id) : null;
+  // CU-16: solo el Asesor cambia el estado · CU-19: Asesor y Jefe adjuntan archivos.
+  const { puede } = usePermisos();
 
   const { data: cotizacion, isLoading, error } = useCotizacion(cotizacionId);
   const { mutate: cambiarEstado, isPending: isChangingState } =
@@ -174,6 +177,7 @@ export const CotizacionDetallePage: React.FC = () => {
               </span>
             </div>
 
+            {puede('cotizaciones.gestionar') && (
             <div className="relative">
               <button
                 onClick={() => setShowEstadoSelector(!showEstadoSelector)}
@@ -201,6 +205,7 @@ export const CotizacionDetallePage: React.FC = () => {
                 </div>
               )}
             </div>
+            )}
 
             <div className="flex gap-2">
               <button
@@ -327,7 +332,7 @@ export const CotizacionDetallePage: React.FC = () => {
             <AdjuntoCotizacionUploader
               cotizacionId={cotizacion.id || 0}
               adjuntos={cotizacion.adjuntos || []}
-              readonly={cotizacion.estadoCotizacion !== EstadoCotizacion.BORRADOR}
+              readonly={cotizacion.estadoCotizacion !== EstadoCotizacion.BORRADOR || !puede('cotizaciones.adjuntos')}
             />
           </div>
 

@@ -5,10 +5,13 @@ import { ProveedorForm } from '../components/ProveedorForm'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
+import { usePermisos } from '@/hooks/usePermisos'
 
 export default function ProveedoresListPage() {
   const { data = [], isLoading, isError } = useProveedores()
   const crear = useCrearProveedor()
+  // CU-08: solo el Jefe Administrativo registra proveedores.
+  const puedeGestionar = usePermisos().puede('proveedores.gestionar')
   const [mostrarForm, setMostrarForm] = useState(false)
   const [pagina, setPagina] = useState(0)
   const tamanoPagina = 10
@@ -21,15 +24,17 @@ export default function ProveedoresListPage() {
           <h1 className="text-2xl font-semibold text-foreground">Proveedores</h1>
           <p className="text-sm text-muted-foreground">Los datos fiscales provienen de tercero.</p>
         </div>
+        {puedeGestionar && (
         <button
           onClick={() => setMostrarForm((v) => !v)}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent/90 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
         >
           {mostrarForm ? 'Cerrar' : 'Nuevo proveedor'}
         </button>
+        )}
       </header>
 
-      {mostrarForm && (
+      {mostrarForm && puedeGestionar && (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <ProveedorForm
             isSubmitting={crear.isPending}

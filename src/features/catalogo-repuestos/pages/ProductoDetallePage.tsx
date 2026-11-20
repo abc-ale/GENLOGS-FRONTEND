@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useEliminarProducto, useProducto } from "@/hooks/useProductos"
 import { ProductoDetalle } from "../components/ProductoDetalle"
 import { ProveedorProductoForm } from "../components/ProveedorProductoForm"
+import { usePermisos } from "@/hooks/usePermisos"
 
 function DetalleSkeleton() {
   return (
@@ -28,6 +29,8 @@ export function ProductoDetallePage() {
   const idInvalido = !Number.isInteger(idProducto) || idProducto <= 0
   const { data: producto, isLoading, isError, refetch } = useProducto(idProducto)
   const eliminar = useEliminarProducto()
+  // CU-09 a CU-11: solo el Jefe Administrativo edita productos y sus proveedores.
+  const puedeGestionar = usePermisos().puede("productos.gestionar")
   const hayError = isError || idInvalido
 
   function handleEliminar() {
@@ -71,6 +74,7 @@ export function ProductoDetallePage() {
           <ProductoDetalle
             producto={producto}
             acciones={
+              puedeGestionar && (
               <>
                 <Button asChild variant="outline" size="sm">
                   <Link to={`/catalogo-repuestos/${producto.idProducto}/editar`}>
@@ -94,6 +98,7 @@ export function ProductoDetallePage() {
                   Eliminar
                 </Button>
               </>
+              )
             }
           />
           {eliminar.isError && (
@@ -104,10 +109,12 @@ export function ProductoDetallePage() {
               )}
             </p>
           )}
-          <ProveedorProductoForm
-            idProducto={producto.idProducto}
-            nombreProducto={producto.nombreProducto}
-          />
+          {puedeGestionar && (
+            <ProveedorProductoForm
+              idProducto={producto.idProducto}
+              nombreProducto={producto.nombreProducto}
+            />
+          )}
         </>
       )}
     </div>

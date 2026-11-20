@@ -10,6 +10,7 @@ import { TableSkeletonRows } from '@/components/ui/TableSkeletonRows'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { cn } from '@/lib/utils/utils'
 import type { EmpresaMinera } from '@/types/empresaMinera.types'
+import { usePermisos } from '@/hooks/usePermisos'
 
 /** Un color por familia de etapa comercial, el MISMO en el mapa, la leyenda,
  *  la lista, la ficha y la tabla (verde producción, azul construcción/desarrollo,
@@ -52,6 +53,8 @@ export function EmpresasMinerasPage() {
   const [filtroCliente, setFiltroCliente] = useState('')
   const [seleccion, setSeleccion] = useState<number | null>(null)
   const [altaAbierta, setAltaAbierta] = useState(false)
+  // CU-06: solo el Asesor Comercial registra unidades mineras.
+  const puedeGestionar = usePermisos().puede('empresasMineras.gestionar')
   const [busqueda, setBusqueda] = useState('')
   const [pagina, setPagina] = useState(0)
   const TAMANO_PAGINA = 10
@@ -115,7 +118,7 @@ export function EmpresasMinerasPage() {
             <span className="tabular-nums">{clientesConUnidades.length}</span> clientes
           </p>
         </div>
-        <div className="flex items-center gap-3"><button type="button" onClick={() => setAltaAbierta(true)} className="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3 text-sm font-medium text-white shadow-sm hover:opacity-90"><Plus className="h-4 w-4"/>Nueva unidad</button><div role="group" aria-label="Vista" className="flex gap-0.5 rounded-lg border border-border bg-card p-0.5">
+        <div className="flex items-center gap-3">{puedeGestionar && <button type="button" onClick={() => setAltaAbierta(true)} className="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3 text-sm font-medium text-white shadow-sm hover:opacity-90"><Plus className="h-4 w-4"/>Nueva unidad</button>}<div role="group" aria-label="Vista" className="flex gap-0.5 rounded-lg border border-border bg-card p-0.5">
           {(['mapa', 'tabla'] as const).map((v) => (
             <button
               key={v}
@@ -287,7 +290,7 @@ export function EmpresasMinerasPage() {
         </section>
       )}
       <PaginationBar currentPage={paginaVisible} totalPages={totalPaginas} totalItems={filtradas.length} pageSize={TAMANO_PAGINA} itemLabel="unidades mineras" onPageChange={setPagina} />
-      {altaAbierta && <CrearUnidadMineraDialog onClose={() => setAltaAbierta(false)} />}
+      {altaAbierta && puedeGestionar && <CrearUnidadMineraDialog onClose={() => setAltaAbierta(false)} />}
     </div>
   )
 }

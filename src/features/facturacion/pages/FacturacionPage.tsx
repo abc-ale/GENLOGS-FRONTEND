@@ -12,6 +12,7 @@ import { normalizarCodigoMoneda } from '@/lib/formatters/currency'
 import { EstadoFacturacion } from '@/types/facturacion.types'
 import type { Factura, DetalleFacturacion } from '@/types/facturacion.types'
 import logoGenlogs from '@/assets/GENLOGS.png'
+import { usePermisos } from '@/hooks/usePermisos'
 
 async function logoComoDataUrl(): Promise<string> {
   const response = await fetch(logoGenlogs)
@@ -93,6 +94,8 @@ export function FacturacionPage() {
   const { data, isLoading, isError, refetch } = useFacturas({ estadoCodigo: estadoCodigo || undefined, page: pagina, size: TAMANO_PAGINA })
   const facturas = data?.content ?? []
   const cambiarEstado = useCambiarEstadoFactura()
+  // CU-23 y CU-24: solo el Contador General registra facturación y cambia su estado.
+  const puedeGestionar = usePermisos().puede('facturacion.gestionar')
 
   const descargarPdf = async (factura: Factura) => {
     try {
@@ -117,17 +120,19 @@ export function FacturacionPage() {
           <h1 className="text-2xl font-semibold text-foreground">Facturación</h1>
           <p className="text-sm text-muted-foreground">Comprobantes, tipos y estados de emisión.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setMensajeExito(null)
-            setRegistrando(true)
-          }}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#203f68] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#203f68]/90"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          Registrar facturación
-        </button>
+        {puedeGestionar && (
+          <button
+            type="button"
+            onClick={() => {
+              setMensajeExito(null)
+              setRegistrando(true)
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#203f68] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#203f68]/90"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Registrar facturación
+          </button>
+        )}
       </header>
 
       {mensajeExito && (
@@ -171,12 +176,18 @@ export function FacturacionPage() {
               {!isLoading && !isError && facturas.length === 0 && <tr><td colSpan={6} className="p-10 text-center text-muted-foreground"><Receipt className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />No hay comprobantes registrados.</td></tr>}
               {facturas.map((factura) => <tr key={factura.idFacturacion} className="border-t border-border hover:bg-muted/50">
                 <td className="p-3 font-medium text-foreground">{factura.codigoComprobante}</td><td className="p-3">{factura.cliente ?? '—'}</td><td className="p-3"><Link to="/ordenes-compra" className="rounded text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Orden #{factura.idOrdenCompra}</Link></td><td className="p-3">{factura.fechaEmision}</td><td className="p-3">
-                  <EstadoEditable
-                    valor={factura.estadoCodigo}
-                    opciones={OPCIONES_ESTADO}
-                    descripcionItem={`el comprobante ${factura.codigoComprobante}`}
-                    onCambiar={(nuevo) => cambiarEstado.mutateAsync({ id: factura.idFacturacion, estado: nuevo as EstadoFacturacion })}
-                  />
+                  {puedeGestionar ? (
+                    <EstadoEditable
+                      valor={factura.estadoCodigo}
+                      opciones={OPCIONES_ESTADO}
+                      descripcionItem={`el comprobante ${factura.codigoComprobante}`}
+                      onCambiar={(nuevo) => cambiarEstado.mutateAsync({ id: factura.idFacturacion, estado: nuevo as EstadoFacturacion })}
+                    />
+                  ) : (
+                    <span className="font-medium text-foreground">
+                      {OPCIONES_ESTADO.find((o) => o.value === factura.estadoCodigo)?.label ?? factura.estadoCodigo ?? '—'}
+                    </span>
+                  )}
                 </td>
                 <td className="p-3 text-center"><button type="button" onClick={() => void descargarPdf(factura)} disabled={descargandoId === factura.idFacturacion} title="Descargar reporte PDF" aria-label={`Descargar PDF ${factura.codigoComprobante}`} className="inline-flex rounded-lg p-2 text-accent transition hover:bg-accent/10 disabled:cursor-wait disabled:opacity-50">{descargandoId === factura.idFacturacion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}</button></td>
               </tr>)}
