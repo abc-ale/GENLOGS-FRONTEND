@@ -25,7 +25,6 @@ export function useCrearCotizacion(): UseMutationResult<
       cotizacionesApi.crearCotizacion(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cotizaciones'] });
-      queryClient.invalidateQueries({ queryKey: ['cotizaciones-estadisticas'] });
       queryClient.setQueryData(['cotizaciones', data.id], data);
     },
     onError: (error) => {

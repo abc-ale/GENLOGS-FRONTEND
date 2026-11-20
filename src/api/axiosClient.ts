@@ -35,7 +35,6 @@ function cerrarSesionInvalida(motivo: string) {
   // que persiste el estado de Zustand (sessionStorage "genlogs-auth"), para
   // no dejar una sesión a medias que vuelva a mandarnos al Dashboard roto.
   localStorage.removeItem("access_token")
-  localStorage.removeItem("refresh_token")
   sessionStorage.removeItem("genlogs-auth")
   if (window.location.pathname !== "/login") {
     window.location.href = "/login"
@@ -44,38 +43,18 @@ function cerrarSesionInvalida(motivo: string) {
 
 axiosClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
     const originalRequest = error.config
     const status = error.response?.status
 
-    // Solo el 401 significa "tu token no sirve" -> ahí sí vale la pena
-    // refrescar o cerrar sesión. Un 403 puede ser simplemente "no tienes
+    // Solo el 401 significa "tu token no sirve" -> se cierra la sesión. El backend
+    // no emite refresh token ni tiene /auth/refresh: el JWT dura 24 h y, al vencer,
+    // el usuario vuelve a iniciar sesión. Un 403 puede ser simplemente "no tienes
     // permiso para esto puntual" con una sesión por lo demás válida, así que
     // NO debe desloguear: cada pantalla ya maneja su propio estado de error.
-    if (status === 401 && !originalRequest._retry) {
+    if (status === 401) {
       console.warn(`[AUTH] 401 recibido en ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`)
-      originalRequest._retry = true
-
-      try {
-        const refreshToken = localStorage.getItem("refresh_token")
-        if (refreshToken) {
-          const { data } = await axios.post(
-            `${getApiBaseUrl()}/auth/refresh`,
-            { refreshToken },
-            { headers: { "Content-Type": "application/json" } }
-          )
-
-          const { accessToken, refreshToken: newRefreshToken } = data
-          localStorage.setItem("access_token", accessToken)
-          localStorage.setItem("refresh_token", newRefreshToken)
-
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`
-          return axiosClient(originalRequest)
-        }
-        cerrarSesionInvalida("401 sin refresh_token disponible")
-      } catch {
-        cerrarSesionInvalida("falló el intento de refrescar el token")
-      }
+      cerrarSesionInvalida("token inválido o vencido")
     } else if (status === 403) {
       console.warn(`[AUTH] 403 recibido en ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url} (no desloguea, solo informativo)`)
     }

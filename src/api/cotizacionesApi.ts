@@ -191,20 +191,5 @@ export const cotizacionesApi = {
     })
     return response.data
   },
-
-  async duplicarCotizacion(id: number): Promise<Cotizacion> {
-    const response = await axiosClient.post<Cotizacion>(`/cotizaciones/${id}/duplicar`)
-    return response.data
-  },
-
-  async obtenerEstadisticas(): Promise<{
-    totalCotizaciones: number
-    totalPorEstado: Record<string, number>
-    montoTotalPendiente: number
-    tasaAprobacion: number
-  }> {
-    const response = await axiosClient.get("/cotizaciones/estadisticas")
-    return response.data
-  },
 }
 

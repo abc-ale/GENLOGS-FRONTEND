@@ -21,9 +21,8 @@ export const facturacionApi = {
   crear: (data: FacturaInput) => axiosClient.post<Factura>('/facturacion', data).then((r) => r.data),
   cambiarEstado: (id: number, estado: EstadoFacturacion) =>
     axiosClient.patch<Factura>(`/facturacion/${id}/estado`, { codigoEstado: estado }).then((r) => r.data),
-  enviarSunat: (id: number) => axiosClient.post<Factura>(`/facturacion/${id}/enviar-sunat`).then((r) => r.data),
-  anular: (id: number, motivo: string) => axiosClient.post<Factura>(`/facturacion/${id}/anular`, { motivo }).then((r) => r.data),
-  descargarPdf: (id: number) => axiosClient.get<Blob>(`/facturacion/${id}/pdf`, { responseType: 'blob' }).then((r) => r.data),
+  // El PDF del comprobante se genera en el navegador (FacturacionPage); la anulación
+  // se hace cambiando el estado a ANULADA. El backend no tiene /pdf, /anular ni /enviar-sunat.
   // Catálogos que pide el registro de la facturación (CU-23).
   listarTiposComprobante: () =>
     axiosClient.get<TipoComprobanteCatalogo[]>('/tipos-comprobante').then((r) => r.data),

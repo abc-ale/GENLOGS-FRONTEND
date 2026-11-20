@@ -30,7 +30,6 @@ export function useCambiarEstado(
       queryClient.invalidateQueries({
         queryKey: ['cotizaciones', cotizacionId],
       });
-      queryClient.invalidateQueries({ queryKey: ['cotizaciones-estadisticas'] });
       queryClient.setQueryData(['cotizaciones', data.id], data);
     },
     onError: (error) => {

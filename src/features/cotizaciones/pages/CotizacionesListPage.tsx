@@ -5,7 +5,6 @@ import { PaginationBar } from '@/components/ui/PaginationBar';
 import { useNavigate } from 'react-router-dom';
 import { useCotizaciones } from '../hooks/useCotizaciones';
 import { cotizacionesApi } from '@/api/cotizacionesApi';
-import { useDuplicarCotizacion } from '../hooks/useCotizacionesMutations';
 import {
   EstadoCotizacion,
   Moneda,
@@ -22,7 +21,6 @@ import {
   Search,
   Loader2,
   AlertCircle,
-  Copy,
   Eye,
   Download,
 } from 'lucide-react';
@@ -38,8 +36,6 @@ export const CotizacionesListPage: React.FC = () => {
 
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
   const { data, isLoading, error } = useCotizaciones(filtros);
-  const { mutate: duplicarCotizacion, isPending: isDuplicarPending } =
-    useDuplicarCotizacion();
 
   const handleFilterChange = (newFiltros: Partial<CotizacionesFilterParams>) => {
     setFiltros((prev) => ({
@@ -76,16 +72,6 @@ export const CotizacionesListPage: React.FC = () => {
     }
   };
 
-  const handleDuplicar = (id: number) => {
-    duplicarCotizacion(id, {
-      onSuccess: (data) => {
-        // La pantalla de edición (/cotizaciones/:id/editar) no existe todavía;
-        // se abre el detalle de la cotización recién duplicada, donde sí se
-        // puede gestionar su estado y descargar el PDF.
-        navigate(`/cotizaciones/${data.id}`);
-      },
-    });
-  };
   const paginaActual = filtros.page ?? 0;
 
   return (
@@ -237,14 +223,6 @@ export const CotizacionesListPage: React.FC = () => {
                               title="Ver detalles"
                             >
                               <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDuplicar(cotizacion.id!)}
-                              disabled={isDuplicarPending}
-                              className="p-2 text-success hover:bg-success/10 disabled:opacity-50 rounded-lg transition"
-                              title="Duplicar"
-                            >
-                              <Copy className="w-4 h-4" />
                             </button>
                             <button
                               type="button"
