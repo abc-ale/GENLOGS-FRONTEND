@@ -114,7 +114,6 @@ export function AppLayout() {
 
   function handleLogout() {
     localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
     logout();
     setIsUserMenuOpen(false);
     closeMenu();

@@ -28,14 +28,3 @@ export function useCotizacion(
     retry: 2,
   });
 }
-
-
-export function useCotizacionesEstadisticas() {
-  return useQuery({
-    queryKey: ['cotizaciones-estadisticas'],
-    queryFn: () => cotizacionesApi.obtenerEstadisticas(),
-    staleTime: 1000 * 60 * 10,
-    gcTime: 1000 * 60 * 30,
-    retry: 1,
-  });
-}

@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { cotizacionesApi } from '@/api/cotizacionesApi';
 import type {
-  Cotizacion,
   EnviarCotizacionRequest,
   AdjuntoCotizacion,
 } from '@/types/cotizacion.types';
@@ -116,29 +115,6 @@ export function useDescargarPDF(
         ? await responseData.text()
         : error.response?.data?.message || error.message;
       window.alert(`No se pudo descargar el PDF de la cotización. ${message}`);
-    },
-  });
-}
-
-/**
- * Hook para duplicar una cotización
- */
-export function useDuplicarCotizacion(): UseMutationResult<
-  Cotizacion,
-  AxiosError<ErrorResponse>,
-  number
-> {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (cotizacionId: number) =>
-      cotizacionesApi.duplicarCotizacion(cotizacionId),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['cotizaciones'] });
-      queryClient.setQueryData(['cotizaciones', data.id], data);
-    },
-    onError: (error) => {
-      console.error('Error al duplicar cotización:', error);
     },
   });
 }
